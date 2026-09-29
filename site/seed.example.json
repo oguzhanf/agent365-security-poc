@@ -1,0 +1,34 @@
+{
+  "engagements": [
+    {
+      "id": "demo-tenant",
+      "preset": "demonstration",
+      "settings": {
+        "name": "Demonstration tenant",
+        "customer": "Internal demonstration",
+        "tenant": { "name": "Demonstration tenant" },
+        "test_bed": {
+          "users": "u-allow, u-deny",
+          "notes": "Build and rehearse the live and demonstration-only content here before customer walkthroughs."
+        }
+      },
+      "notes": [
+        {
+          "category": "general",
+          "title": "How to use the demonstration tenant",
+          "body": "Follow the configuration steps in plan order. Record every created object in Tenant build. Use Presenter mode for customer walkthroughs of the demonstration-only items.",
+          "shareable": false
+        }
+      ]
+    },
+    {
+      "id": "customer-evaluation",
+      "preset": "evaluation",
+      "settings": {
+        "name": "Customer evaluation tenant",
+        "customer": "Customer",
+        "tenant": { "name": "Customer evaluation tenant" }
+      }
+    }
+  ]
+}

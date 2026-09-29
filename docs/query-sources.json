@@ -1,0 +1,60 @@
+{
+  "sources": [
+    {
+      "id": "Q01",
+      "title": "DeviceProcessEvents schema",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+      "retrieved": "2026-09-18",
+      "note": "Defines the process fields in the endpoint query."
+    },
+    {
+      "id": "Q02",
+      "title": "DeviceNetworkEvents schema",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+      "retrieved": "2026-09-18",
+      "note": "Defines the network fields in the endpoint query."
+    },
+    {
+      "id": "Q03",
+      "title": "Service principal sign-in log schema",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/aadserviceprincipalsigninlogs",
+      "retrieved": "2026-09-18",
+      "note": "Defines the service principal sign-in fields. The Agent field contains agentic sign-in details."
+    },
+    {
+      "id": "Q04",
+      "title": "User sign-in log schema",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/signinlogs",
+      "retrieved": "2026-09-18",
+      "note": "Defines the user sign-in fields."
+    },
+    {
+      "id": "Q05",
+      "title": "Entra audit log schema",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/auditlogs",
+      "retrieved": "2026-09-18",
+      "note": "Defines the target object and result fields in the audit query."
+    },
+    {
+      "id": "Q06",
+      "title": "BehaviorInfo schema",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-behaviorinfo-table",
+      "retrieved": "2026-09-18",
+      "note": "Defines behavior fields. The table is preview and is unavailable in GCC."
+    },
+    {
+      "id": "Q07",
+      "title": "BehaviorEntities schema",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-behaviorentities-table",
+      "retrieved": "2026-09-18",
+      "note": "Defines related entity fields. A behavior does not necessarily indicate malicious activity."
+    },
+    {
+      "id": "Q08",
+      "title": "CloudAppEvents schema",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-cloudappevents-table",
+      "retrieved": "2026-09-18",
+      "note": "Defines connected application events and recorded account identifiers."
+    }
+  ]
+}

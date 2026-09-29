@@ -1,0 +1,335 @@
+{
+  "chapters": [
+    {
+      "title": "External provider lab: boundaries",
+      "paragraphs": [
+        "These artifacts create actual provider resources only after operator authorization. No live provider deployment was performed.",
+        "Connected platforms synchronizes inventory. It does not deploy external agents into Teams or establish runtime telemetry. [V01]",
+        "ONB-10, actual Bedrock registry synchronization, is REQUIRED for the requested connected-platform category, despite preview status.",
+        "Provider readiness, ONB-05, does not satisfy ONB-10. Record the actual synchronized registry entry and matching provider AgentId.",
+        "ONB-07, actual Claude Managed Agents registry synchronization, is also REQUIRED. Missing beta or preview approval blocks agreed catalogue acceptance.",
+        "Use isolated test accounts, synthetic content, approved regions, and customer-approved spending limits."
+      ],
+      "sections": [
+        {
+          "title": "Files and local validation",
+          "paragraphs": [
+            "The AWS template creates one Bedrock Agent and one service role. It creates no access keys.",
+            "The Anthropic script uses Python standard-library HTTPS. No provider package installation is required.",
+            "Tests replace provider transports. They never authenticate or contact customer accounts."
+          ],
+          "steps": [
+            "Run commands from the extracted project root.",
+            "Run the standard unittest suite.",
+            "Review the provider-specific eligibility gates before live testing."
+          ],
+          "items": [
+            "providers\\aws\\bedrock-agent.json",
+            "providers\\aws\\Prepare-BedrockDemo.ps1",
+            "providers\\anthropic\\managed_agent_demo.py",
+            "tests\\providers\\test_bedrock_template.py",
+            "tests\\providers\\test_managed_agent_demo.py",
+            "tests\\providers\\test_provider_docs.py"
+          ],
+          "code": "python -B -m unittest discover -s tests\\providers -p \"test_*.py\"",
+          "notes": [
+            "Local validation uses Python 3.12 and Windows PowerShell 5.1.",
+            "AWS CLI is unavailable in the build environment. CloudFormation service validation was not run.",
+            "JSON checks and mocked PowerShell tests do not prove AWS model access, service eligibility, or successful deployment.",
+            "Tests parse every provider command block with Windows PowerShell 5.1. They also check documented CLI arguments against the executable interfaces.",
+            "Mocked Anthropic tests do not prove beta access, workspace configuration, available credit, or successful inference."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Amazon Bedrock: create an isolated inventory agent",
+      "paragraphs": [
+        "This template targets AWS::Bedrock::Agent, now called Bedrock Agents Classic. It does not create an AgentCore runtime. [V02, V05]",
+        "Agents Classic closed to new customers on July 30, 2026. Existing Agents Classic customers can continue using it. [V05]",
+        "For new Agents Classic customers, mark this Classic path BLOCKED. An existing AWS account alone does not establish eligibility.",
+        "Do not silently substitute AgentCore. A separate AgentCore demonstration requires a separately scoped plan and explicit customer approval."
+      ],
+      "sections": [
+        {
+          "title": "Model, role, and cost gates",
+          "paragraphs": [
+            "Select an approved, available direct foundation model in the approved region. No model availability is assumed. [V04]",
+            "The script accepts a provider-qualified model ID or its same-region foundation-model ARN. It rejects profile ARNs and us., eu., apac., and global. routing prefixes.",
+            "Inference profiles require additional actions and resource scoping. This deliberately narrow template does not grant those permissions. [V03]",
+            "Bedrock inference can incur charges. The script prepares the agent but never invokes it."
+          ],
+          "steps": [
+            "Confirm existing Agents Classic customer eligibility with the AWS account owner. Otherwise mark the Classic path BLOCKED.",
+            "Confirm the chosen model, regional availability, quotas, model access, pricing, and purchasing terms.",
+            "Use an already approved AWS CLI v2 session. This script does not sign in or switch accounts.",
+            "Confirm the active principal can manage this stack, create its role, and pass that role to Bedrock."
+          ],
+          "items": [
+            "The service role permits only bedrock:InvokeModel on one foundation-model ARN.",
+            "Trust permits bedrock.amazonaws.com, constrained by the current account and region.",
+            "Bootstrap trust uses agent/*. A second reviewed update pins the returned AgentId.",
+            "The role has no S3, Lambda, knowledge-base, credential, or connector permissions.",
+            "The agent has no action groups, knowledge bases, external tools, or collaborators."
+          ],
+          "code": "",
+          "notes": [
+            "Do not confuse the agent service role with operator permissions or Microsoft connector credentials.",
+            "The customer must approve each permission set separately.",
+            "The model policy and trust conditions follow AWS documentation. [V03]"
+          ]
+        },
+        {
+          "title": "Preview, prepare, review, and execute",
+          "paragraphs": [
+            "Replace every uppercase value before running the commands.",
+            "Use the same exact stack name throughout the lab. The example name is a365-bedrock-lab.",
+            "The normal command creates a change set, not deployed resources. This is still an authenticated AWS control-plane write. [V06]",
+            "WhatIf is fully local. It does not read credentials or call AWS."
+          ],
+          "steps": [
+            "Run the WhatIf command first.",
+            "Remove WhatIf to prepare a change set. Confirm the preparation prompt.",
+            "Record its ChangeSetId. Inspect all changes, model parameters, IAM policy, tags, account, and region.",
+            "Use -Apply -Confirm with that exact ChangeSetId. Confirm the execution prompt.",
+            "Wait for a completed stack. Record AgentId, account, region, and stack name.",
+            "Prepare a second change set using the same creation parameters.",
+            "The second update automatically pins role trust to the existing AgentId. Review and execute that update separately."
+          ],
+          "items": [
+            "The script refuses account or approved-region mismatches.",
+            "Execution requires explicit -Confirm, including execution previews. Omitted confirmation and -Confirm:$false are rejected before AWS calls, regardless of the caller's ConfirmPreference.",
+            "It checks demo ownership tags before updating an existing deployed stack.",
+            "It does not treat access-denied errors as a missing stack.",
+            "Failed or incomplete change sets are never executed.",
+            "An empty change set reports no changes, not a successful deployment.",
+            "Failed stack waiters do not produce a successful AgentId result."
+          ],
+          "code": "$common = @{\n  StackName = 'a365-bedrock-lab'\n  ExpectedAccountId = 'APPROVED_12_DIGIT_ACCOUNT'\n  Region = 'APPROVED_REGION'\n  ApprovedRegion = 'APPROVED_REGION'\n  ConfirmClassicAccess = $true\n}\n$create = @{\n  AgentName = 'a365-bedrock-lab'\n  FoundationModel = 'APPROVED_DIRECT_MODEL_ID_OR_ARN'\n  Owner = 'lab-team'\n}\n.\\providers\\aws\\Prepare-BedrockDemo.ps1 @common @create -WhatIf\n# After approval: prepare only.\n.\\providers\\aws\\Prepare-BedrockDemo.ps1 @common @create -Confirm\n# After reviewing the returned change set:\n.\\providers\\aws\\Prepare-BedrockDemo.ps1 @common -Apply -Confirm -ChangeSetId 'RETURNED_CHANGE_SET_ARN'\n# After CREATE_COMPLETE: prepare the exact-AgentId trust update.\n.\\providers\\aws\\Prepare-BedrockDemo.ps1 @common @create -Confirm\n# Review this new change set before execution.\n.\\providers\\aws\\Prepare-BedrockDemo.ps1 @common -Apply -Confirm -ChangeSetId 'RETURNED_TRUST_UPDATE_CHANGE_SET_ARN'",
+          "notes": [
+            "An unexecuted CREATE change set can leave an empty REVIEW_IN_PROGRESS stack.",
+            "A failed change set remains available for investigation and exact-ID removal.",
+            "Do not retry after an uncertain timeout without inspecting the exact stack and change set.",
+            "AWS calls use 15-second connection and 30-second read timeouts. AWS CLI waiters have finite retry limits.",
+            "AWS error output is suppressed. Inspect the exact stack or change set in the approved AWS interface.",
+            "DescribeChangeSet does not return ChangeSetType. The script uses its preparation marker and verified stack state. [V07]",
+            "Changes to AWS or model access can still fail during execution. Local validation is not a deployment guarantee."
+          ]
+        },
+        {
+          "title": "Hand off for manual Microsoft connection",
+          "paragraphs": [
+            "Use the printed AgentId to verify the inventory entry after manual synchronization.",
+            "ONB-10 is REQUIRED. A created provider agent without actual registry synchronization does not pass the connected-platform demonstration.",
+            "The Microsoft wizard needs separate customer-approved AWS credentials and the deployment region. [V01]",
+            "This template does not create, retrieve, print, store, or rotate those credentials.",
+            "Microsoft's documented permission list includes invocation and deletion. Do not describe this connector as read-only. [V01]"
+          ],
+          "steps": [
+            "Obtain separate customer approval for the documented connector permission list.",
+            "Have the authorized administrator enter credentials directly in the Microsoft wizard.",
+            "Use the platform onboarding chapter for the portal connection and synchronization procedure.",
+            "Perform the actual Bedrock registry synchronization. Compare the synchronized provider AgentId with the stack output.",
+            "Record connection identity, account, region, synchronization status, timestamp, registry entry, and matching AgentId as ONB-10 evidence.",
+            "Mark ONB-10 BLOCKED if eligibility, permissions, or preview availability prevents synchronization. Do not report provider readiness as PASS."
+          ],
+          "items": [
+            "bedrock:ListAgents",
+            "bedrock:GetAgent",
+            "bedrock:ListAgentAliases",
+            "bedrock:GetAgentAlias",
+            "bedrock:ListAgentVersions",
+            "bedrock:GetAgentVersion",
+            "bedrock:InvokeModel",
+            "bedrock:InvokeAgent",
+            "bedrock:InvokeInlineAgent",
+            "bedrock:DeleteAgent"
+          ],
+          "code": "",
+          "notes": [
+            "AgentCore synchronization has additional permissions. Do not grant them for this Agents Classic-only lab. [V01]",
+            "Coordinate any connector deletion test. It can remove the underlying agent and cause CloudFormation drift.",
+            "No Microsoft API or connector implementation is simulated by these artifacts."
+          ]
+        },
+        {
+          "title": "Remove only the approved lab stack",
+          "paragraphs": [
+            "Cleanup is optional and destructive. Obtain approval before deleting the exact lab stack.",
+            "Stop if the account, region, stack name, or ownership tags differ.",
+            "Do not delete stacks by prefix or enumerate stacks for deletion."
+          ],
+          "steps": [
+            "Remove the Microsoft platform connection through the documented manual procedure.",
+            "Have the credential owner revoke the dedicated connector credentials.",
+            "Run the guarded cleanup below with the same approved account and region.",
+            "Inspect DELETE_FAILED stack events instead of disabling resource-in-use protections."
+          ],
+          "items": [],
+          "code": "$ExpectedAccountId = 'APPROVED_12_DIGIT_ACCOUNT'\n$Region = 'APPROVED_REGION'\n$ApprovedRegion = 'APPROVED_REGION'\n$StackName = 'a365-bedrock-lab'\nif ($ExpectedAccountId -notmatch '^[0-9]{12}$' -or $Region -cne $ApprovedRegion) { throw 'Invalid target.' }\n$raw = aws sts get-caller-identity --region $Region --output json --no-cli-pager\nif ($LASTEXITCODE -ne 0) { throw 'Identity check failed.' }\nif (($raw | ConvertFrom-Json).Account -cne $ExpectedAccountId) { throw 'Wrong AWS account.' }\n$raw = aws cloudformation describe-stacks --stack-name $StackName --region $Region --output json --no-cli-pager\nif ($LASTEXITCODE -ne 0) { throw 'Stack inspection failed.' }\n$stack = ($raw | ConvertFrom-Json).Stacks[0]\nif ($stack.StackName -cne $StackName) { throw 'Wrong stack.' }\n$project = @($stack.Tags | Where-Object { $_.Key -ceq 'Project' -and $_.Value -ceq 'Agent365SecurityPoC' })\n$managed = @($stack.Tags | Where-Object { $_.Key -ceq 'ManagedBy' -and $_.Value -ceq 'provider-demo' })\nif ($project.Count -ne 1 -or $managed.Count -ne 1) { throw 'Ownership check failed.' }\n$stack | ConvertTo-Json -Depth 10\nif ((Read-Host \"Type DELETE $StackName to confirm\") -cne \"DELETE $StackName\") { throw 'Cancelled.' }\naws cloudformation delete-stack --stack-name $stack.StackId --region $Region --no-cli-pager\nif ($LASTEXITCODE -ne 0) { throw 'Delete request failed.' }\naws cloudformation wait stack-delete-complete --stack-name $stack.StackId --region $Region --no-cli-pager\nif ($LASTEXITCODE -ne 0) { throw 'Deletion is not confirmed. Inspect this exact stack.' }",
+          "notes": [
+            "An empty REVIEW_IN_PROGRESS stack may lack tags. Inspect its exact change set manually before deleting it.",
+            "Use the AWS console for that exceptional cleanup. Do not remove the ownership checks from this snippet.",
+            "Stack deletion does not revoke separately created Microsoft connector credentials."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Anthropic Claude Managed Agents beta: synthetic agent",
+      "paragraphs": [
+        "This implementation calls documented Anthropic APIs. It does not use the Messages API as a substitute for Managed Agents. [V08]",
+        "Managed Agents is stateful. It is not currently eligible for Zero Data Retention or HIPAA BAA coverage. [V09]",
+        "Approve that data-handling boundary before using this beta. Use synthetic arithmetic only."
+      ],
+      "sections": [
+        {
+          "title": "Workspace and network gates",
+          "paragraphs": [
+            "Use a new non-default workspace. Microsoft requires its workspace ID and a workspace-scoped API key. [V01]",
+            "Supply the key through ANTHROPIC_API_KEY in the approved process environment. Never put it in a command or file.",
+            "Dry-run never reads that key. Apply reads it only for the selected operation.",
+            "The script sends the workspace header. The operator must verify key ownership and workspace authorization."
+          ],
+          "steps": [
+            "Have the authorized administrator create and approve a dedicated non-default workspace.",
+            "Record its wrkspc_ identifier. Confirm its spend controls and intended data location.",
+            "Choose an approved, available Claude model. The script has no default model.",
+            "Use Python 3.9 or later. No third-party SDK dependency is required.",
+            "Inject the workspace-scoped key using the customer's approved secret-handling process."
+          ],
+          "items": [
+            "API origin: https://api.anthropic.com",
+            "anthropic-version: 2023-06-01",
+            "anthropic-beta: managed-agents-2026-04-01",
+            "anthropic-workspace-id: the explicit non-default workspace ID",
+            "No HTTP redirect following, automatic retries, custom endpoints, corporate tools, MCP servers, or uploaded files."
+          ],
+          "code": "",
+          "notes": [
+            "The ID check validates syntax, not organization membership. The workspace-scoped key and provider authorization remain required.",
+            "A redacted plan is not evidence of successful authorization.",
+            "The current beta is enabled for API accounts according to Anthropic. Customer access still requires live validation. [V09]"
+          ]
+        },
+        {
+          "title": "Create resources, then run separately",
+          "paragraphs": [
+            "Every command defaults to dry-run and prints the intended JSON body with a redacted authentication header.",
+            "Add --apply only after reviewing that operation and approving cost.",
+            "Agent creation and environment creation are separate. Neither command starts a model turn.",
+            "The environment blocks outbound hosts and package-manager or MCP exceptions. The agent has no tools or skills. [V10, V11]"
+          ],
+          "steps": [
+            "Preview create-agent. Review the model, fixed system prompt, and empty tool lists.",
+            "Apply create-agent. Record the returned agent_id and version.",
+            "Preview and apply create-environment. Record environment_id.",
+            "Supply those exact IDs and version to run. Review the plan without Apply first.",
+            "Apply run to verify the lab environment and create one session. Inspect its pinned snapshot and synthetic user.message event.",
+            "Record session_id and event_id immediately. They support recovery and precise cleanup.",
+            "Observe end_turn_observed only after the corresponding user event, an agent message, and a successful idle stop reason."
+          ],
+          "items": [
+            "The fixed prompt asks only: Synthetic lab: what is 2 + 2?",
+            "No command accepts arbitrary user prompts, files, MCP configuration, or corporate data.",
+            "Run refuses a resolved session with tools, skills, MCP servers, collaborators, or a different lab system prompt.",
+            "Before session creation, run verifies the environment ID, lab metadata, cloud type, blocked networking, and empty package lists. [V22]",
+            "Agent definitions are pinned by returned version. [V12, V13]",
+            "The session has a 50-cent list-cost budget. In-flight requests can exceed it. [V16]",
+            "HTTP event acceptance does not establish response completion. [V14, V15]"
+          ],
+          "code": "$WorkspaceId = 'RETURNED_NON_DEFAULT_WORKSPACE_ID'\n$ModelId = 'APPROVED_CLAUDE_MODEL_ID'\npython .\\providers\\anthropic\\managed_agent_demo.py create-agent --workspace-id $WorkspaceId --model $ModelId\npython .\\providers\\anthropic\\managed_agent_demo.py create-agent --workspace-id $WorkspaceId --model $ModelId --apply\npython .\\providers\\anthropic\\managed_agent_demo.py create-environment --workspace-id $WorkspaceId\npython .\\providers\\anthropic\\managed_agent_demo.py create-environment --workspace-id $WorkspaceId --apply\n$AgentId = 'RETURNED_AGENT_ID'\n$AgentVersion = 1 # Replace with the returned version.\n$EnvironmentId = 'RETURNED_ENVIRONMENT_ID'\npython .\\providers\\anthropic\\managed_agent_demo.py run --workspace-id $WorkspaceId --agent-id $AgentId --agent-version $AgentVersion --environment-id $EnvironmentId\n# Append --apply only after reviewing this exact run plan.",
+          "notes": [
+            "The dry-run path placeholder {new_session_id} means the ID returned by session creation. It is not an API route.",
+            "The script replaces that placeholder only after receiving and validating the provider ID.",
+            "Polling allows 20 attempts by default, five pages per attempt, and a 120-second deadline. --max-polls accepts 1 through 60.",
+            "Each HTTPS operation also has a socket timeout and a one-megabyte response limit.",
+            "Timeouts stop local polling. They do not stop remote work or prove completion.",
+            "No model response text is printed, saved, forwarded, or submitted to another service.",
+            "The script reports event status and counts only. Verify answer quality manually in the approved provider interface.",
+            "Give the workspace ID to the Microsoft connection administrator. Enter its separate approved key directly in the wizard."
+          ]
+        },
+        {
+          "title": "Hand off for manual Microsoft preview connection",
+          "paragraphs": [
+            "Use the platform onboarding chapter to connect Anthropic Claude Managed Agents. This is a preview connection. [V01]",
+            "ONB-07 is REQUIRED for agreed catalogue acceptance. Provider resource creation or a successful session does not prove registry synchronization.",
+            "Claude Code, Claude Desktop, and ordinary Messages API applications are not substitutes for Managed Agents."
+          ],
+          "steps": [
+            "Confirm explicit approval for the Anthropic beta and Microsoft preview connection before proceeding.",
+            "Have the authorized administrator select Anthropic Claude Managed Agents in the Microsoft connection wizard.",
+            "Enter the approved non-default workspace ID and its separate workspace-scoped key directly in the wizard.",
+            "Validate and save the connection. Select Sync agents.",
+            "Record connection identity, workspace ID, synchronization status, timestamp, registry entry, and the matching provider agent_id as ONB-07 evidence.",
+            "Mark ONB-07 BLOCKED if beta or preview approval, access, or permissions prevent synchronization. This blocks agreed catalogue acceptance.",
+            "Keep required Claude ONB-07 and Bedrock ONB-10 evidence separate. Neither result substitutes for the other."
+          ],
+          "items": [],
+          "code": "",
+          "notes": [
+            "Registry synchronization does not import all session transcripts or establish runtime telemetry.",
+            "Keep credentials out of screenshots and evidence files."
+          ]
+        },
+        {
+          "title": "Recover and remove exact resources",
+          "paragraphs": [
+            "Do not rerun creation after an uncertain transport failure. It could create duplicate resources.",
+            "Use the printed session and event IDs to observe existing work without sending another prompt.",
+            "Delete sessions first. Delete the exact environment after its sessions are removed. [V17, V18]",
+            "Agent archive is irreversible. It prevents new sessions but does not stop existing sessions. [V19, V20]"
+          ],
+          "steps": [
+            "Preview watch, then add --apply to read the exact session's event history.",
+            "Preview delete-session for each recorded lab session. Apply only after confirming its ID.",
+            "Preview delete-environment for the recorded lab environment. Apply only after confirming its ID.",
+            "Preview archive-agent for the recorded lab agent. Apply only after approving irreversible archival.",
+            "Remove the Microsoft platform connection and have its credential owner revoke the dedicated workspace key."
+          ],
+          "items": [
+            "Residual object: the archived agent definition remains. This demo does not claim permanent agent deletion.",
+            "No documented permanent agent DELETE endpoint was verified. None is invented.",
+            "Partial creation can leave an agent or environment when a later command fails. Keep every returned ID.",
+            "A failed run can leave an idle or active session. Review and delete that exact session separately.",
+            "A provider deletion error is a failed cleanup, not proof that the object is gone."
+          ],
+          "code": "$SessionId = 'RETURNED_SESSION_ID'\n$EventId = 'RETURNED_USER_MESSAGE_EVENT_ID'\npython .\\providers\\anthropic\\managed_agent_demo.py watch --workspace-id $WorkspaceId --session-id $SessionId --event-id $EventId\npython .\\providers\\anthropic\\managed_agent_demo.py delete-session --workspace-id $WorkspaceId --session-id $SessionId\npython .\\providers\\anthropic\\managed_agent_demo.py delete-environment --workspace-id $WorkspaceId --environment-id $EnvironmentId\npython .\\providers\\anthropic\\managed_agent_demo.py archive-agent --workspace-id $WorkspaceId --agent-id $AgentId\n# Each command above is dry-run. Add --apply separately after approving its exact target.",
+          "notes": [
+            "Cleanup requires the same explicit workspace ID and an authorized workspace-scoped key.",
+            "API errors return a nonzero exit code. Response bodies are suppressed to avoid accidental credential disclosure.",
+            "Deleting the environment does not delete the agent definition.",
+            "No resources were created during local development or test execution."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "OpenAI: no native Connected platforms demo",
+      "paragraphs": [
+        "OpenAI is absent from Microsoft's supported Connected platforms list retrieved on September 18, 2026. [V01]",
+        "No native OpenAI connection procedure or registry connector is implemented here.",
+        "An OpenAI SDK runtime integration is a separate implementation. It does not establish a native registry-sync connector."
+      ],
+      "sections": [
+        {
+          "title": "Record the unsupported path accurately",
+          "paragraphs": [
+            "Mark native OpenAI Connected platforms onboarding as unavailable in this source-verified scope.",
+            "Do not substitute Codex endpoint discovery, an Azure-hosted model, or mocked Microsoft APIs."
+          ],
+          "steps": [
+            "Recheck the current Microsoft supported-platform list before a customer demonstration.",
+            "Use the separate SDK runtime chapter when an instrumented OpenAI-framework agent is required."
+          ],
+          "items": [],
+          "code": "",
+          "notes": [
+            "This statement is date-bound. It is not a prediction about future connector support."
+          ]
+        }
+      ]
+    }
+  ]
+}

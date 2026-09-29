@@ -1,0 +1,13 @@
+POC-RESTRICTED-4826
+
+This file contains synthetic data.
+Apply the test sensitivity label before the data protection test.
+The text in this file does not apply a Microsoft Purview label.
+
+Test project: North Test
+Test item: Laboratory sensor
+Test quantity: 12
+Test amount: 8400 AED
+Test approval reference: POC-APPROVAL-6142
+
+No real person, customer, account, or transaction appears in this file.

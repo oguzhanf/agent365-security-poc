@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "name": "Agent 365 security PoC",
+  "revision": "2026-09-18",
+  "tenant_alias": "REPLACE_WITH_TEST_TENANT_ALIAS",
+  "customer_approval_reference": "REPLACE_WITH_APPROVAL_REFERENCE",
+  "start_utc": "REPLACE_WITH_APPROVED_START",
+  "end_utc": "REPLACE_WITH_APPROVED_END",
+  "owners": {
+    "poc_lead": "REPLACE_WITH_OWNER_ALIAS",
+    "identity": "REPLACE_WITH_OWNER_ALIAS",
+    "microsoft_365": "REPLACE_WITH_OWNER_ALIAS",
+    "purview": "REPLACE_WITH_OWNER_ALIAS",
+    "defender": "REPLACE_WITH_OWNER_ALIAS",
+    "azure": "REPLACE_WITH_OWNER_ALIAS",
+    "endpoint": "REPLACE_WITH_OWNER_ALIAS",
+    "evidence_reviewer": "REPLACE_WITH_OWNER_ALIAS"
+  },
+  "agents": [
+    {
+      "alias": "CPS-01",
+      "group": "copilot_studio",
+      "platform": "Copilot Studio",
+      "state": "NOT_PROVISIONED"
+    },
+    {
+      "alias": "FDR-01",
+      "group": "foundry_hosted",
+      "platform": "Microsoft Foundry",
+      "state": "NOT_PROVISIONED"
+    },
+    {
+      "alias": "SAS-01",
+      "group": "partner_integrated",
+      "platform": "REPLACE_WITH_APPROVED_PARTNER",
+      "state": "NOT_PROVISIONED"
+    },
+    {
+      "alias": "SDK-01",
+      "group": "sdk_enabled",
+      "platform": "Custom runtime",
+      "state": "NOT_PROVISIONED"
+    },
+    {
+      "alias": "EXT-01",
+      "group": "connected_platform",
+      "platform": "Amazon Bedrock",
+      "state": "NOT_PROVISIONED"
+    },
+    {
+      "alias": "EXT-02",
+      "group": "connected_platform",
+      "platform": "Anthropic Claude Managed Agents",
+      "state": "NOT_PROVISIONED"
+    },
+    {
+      "alias": "SHD-01",
+      "group": "shadow_local",
+      "platform": "Codex CLI",
+      "state": "NOT_PROVISIONED"
+    },
+    {
+      "alias": "SHD-02",
+      "group": "shadow_local",
+      "platform": "Claude Code",
+      "state": "NOT_PROVISIONED"
+    },
+    {
+      "alias": "SHD-03",
+      "group": "shadow_local",
+      "platform": "OpenClaw",
+      "state": "NOT_PROVISIONED"
+    }
+  ],
+  "known_gaps": [
+    {
+      "capability": "Native OpenAI Connected platforms connector",
+      "status": "NOT_LISTED_IN_REVIEWED_SUPPORT_DOCUMENTATION",
+      "source_as_of": "2026-09-18",
+      "scope_decision": "REPLACE_WITH_APPROVED_DECISION"
+    }
+  ],
+  "data": {
+    "classification": "Synthetic test data only",
+    "repository_content": "Code, procedures, and synthetic fixtures only",
+    "evidence_location": "REPLACE_WITH_PROTECTED_LOCATION_OUTSIDE_REPOSITORY",
+    "retention_days": 30,
+    "prompt_content_export": false
+  },
+  "budget": {
+    "currency": "REPLACE_WITH_CURRENCY",
+    "approved_limit": null,
+    "owner": "REPLACE_WITH_OWNER_ALIAS",
+    "stop_at_limit": true
+  },
+  "acceptance": {
+    "required_case_policy": "Every required case must have live positive and negative evidence.",
+    "optional_case_policy": "Record unavailable features as BLOCKED or NOT_APPLICABLE with a reason.",
+    "scope_changes": "Record approval, date, reason, and the changed denominator.",
+    "targets": {
+      "discovery_minutes": null,
+      "revocation_minutes": null,
+      "alert_minutes": null,
+      "investigation_minutes": null
+    }
+  },
+  "stop_conditions": [
+    "A test affects a production user, device, resource, or agent.",
+    "A test reads or writes real restricted data.",
+    "The test scope differs from the approved scope.",
+    "A required licence, consent, or feature is absent.",
+    "The approved cost limit is reached."
+  ]
+}

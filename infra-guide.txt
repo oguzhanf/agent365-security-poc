@@ -1,0 +1,287 @@
+AZURE LAB INFRASTRUCTURE
+
+Purpose and limits
+This is an optional Azure lab, not an Agent 365 deployment.
+It creates a dedicated Log Analytics workspace and workspace-based Application
+Insights. Sentinel onboarding and an Azure OpenAI account/model are opt-in.
+It does not create an agent, Entra Agent ID, app registration, tenant object,
+Agent 365 policy, Defender/Purview control, connector, analytic rule or runtime.
+It does not change a tenant security policy or enable a protection claim.
+
+Local test evidence is not Azure or Agent 365 service evidence. A local compiler
+pass proves template syntax only. Application Insights and Log Analytics are
+Azure runtime observability destinations, not proof of Agent 365 observability.
+No telemetry is sent by these scripts. Runtime integration is separate.
+No existing production workspace or Application Insights component is reused.
+
+Resources
+Always:
+  Microsoft.OperationalInsights/workspaces, API 2023-09-01
+    PerGB2018, 30-day retention, configurable daily quota, local auth disabled.
+  Microsoft.Insights/components, API 2020-02-02
+    Workspace-based, local auth disabled, IP masking retained.
+Optional, both disabled by default:
+  Microsoft.SecurityInsights/onboardingStates, API 2024-03-01
+    The default state scoped only to this workspace. No connectors or rules.
+  Microsoft.CognitiveServices/accounts and accounts/deployments,
+    API 2024-10-01. Account kind OpenAI and account SKU S0.
+    Entra auth only: disableLocalAuth=true.
+    Public endpoint is enabled with defaultAction=Deny, bypass=None and only
+    the explicit approved IPv4 rules. This is NOT a private endpoint network.
+    Model name, version, SKU and capacity are supplied by the operator.
+    NoAutoUpgrade pins the chosen version until retirement or explicit change.
+If OpenAI is enabled AND an operator object ID is supplied:
+  Microsoft.Authorization/roleAssignments, API 2022-04-01.
+    Cognitive Services OpenAI User, scoped to this OpenAI account.
+    Role ID: 5e0bd9bd-7b93-4f28-af87-19fc36ad61bd.
+    principalType=User. Supply the human operator's object ID in this tenant,
+    not the application/client ID, not a service principal, and NOT an Entra
+    Agent ID. An empty value creates no assignment. No identity is created.
+
+This lab uses Azure public cloud only. National clouds require separate review.
+The monitoring endpoints are public and require Entra authentication; this
+template does not provide Azure Monitor Private Link or egress isolation.
+The OpenAI IP firewall does not protect the monitoring endpoints.
+
+Costs and capacity
+Log Analytics, Application Insights, Sentinel and OpenAI can incur charges.
+The default 1 GB/day workspace cap is NOT a spending cap and may be exceeded.
+Some ingestion is not covered by a daily cap. Ingestion stops can create gaps.
+Thirty-day workspace retention is not a guarantee for every service/table:
+service defaults, table overrides and Sentinel rules may differ.
+Sentinel onboarding can change billing. No connector is automatically enabled.
+No budget, cost alert, prepaid capacity or commitment purchase is deployed.
+Review costs before enabling anything. Stop runtime traffic after the test.
+Model SKU capacity units are model-specific, not a universal tokens/minute unit.
+Region, model version, SKU access, available capacity and subscription quota
+must be checked by the operator. Compilation and what-if do not reserve quota.
+Global or Data Zone SKUs may process outside the selected region. Choose the
+deployment type to match approved residency requirements. Retired versions
+may fail even with NoAutoUpgrade. There is no assumed default model or quota.
+
+Operator prerequisites
+Windows PowerShell 5.1, Azure CLI and an already installed Bicep compiler.
+Local validation was tested with Bicep 0.46.1. No pwsh or test package is needed.
+The scripts never log in, select a global subscription, request access tokens,
+export CLI credentials, list keys, install extensions or register providers.
+Cloud steps require a separate, operator-established Azure CLI sign-in.
+Supply the expected tenant independently; do not derive it from account show.
+The subscription and tenant must be explicit nonzero GUIDs.
+
+Create a NEW dedicated resource group yourself before any cloud plan.
+Use only this lab's resources in it. Required resource group tags:
+  poc=agent365-security-poc
+  owner=<exact same value as the parameters file>
+Tags are an operational guard, not an authorization boundary.
+Do not relabel production resources to pass the guard.
+Do not create shared resources in the group or inside lab resources.
+The scripts do not create, retag or delete the resource group.
+An explicit operator action might be:
+  az group create --name <dedicated-rg> --location <region> --subscription <subscription-guid> --tags poc=agent365-security-poc owner=<owner>
+That command writes to Azure. It is not run by any repository script.
+
+An authorized operator must register needed providers separately:
+  Microsoft.OperationalInsights, Microsoft.Insights
+  Microsoft.SecurityInsights if enabling Sentinel
+  Microsoft.CognitiveServices if enabling OpenAI
+Preflight reads SecurityInsights registration state before reading onboarding.
+No missing-provider error is suppressed or repaired automatically.
+
+Permissions
+Local compilation requires no Azure permissions.
+Cloud inventory requires read access to the group, its resources and child
+configuration, role assignments, diagnostic settings and provider state.
+What-if requires the deployment and target resource permissions required by
+Azure Resource Manager. Reader alone may not be enough.
+Deploying needs resource-group-scoped deployment and resource write permissions
+for the enabled types. Contributor on only the dedicated group is one broad
+option; prefer a reviewed custom role when available.
+The optional operator role assignment additionally needs
+Microsoft.Authorization/roleAssignments/write at the OpenAI account scope
+(or an inherited scope). Contributor alone cannot assign that role.
+Removal needs delete permissions on the exact resources and
+roleAssignments/delete if the lab role assignment exists.
+No tenant-wide administrator or directory write permission is needed.
+Subscription provider registration is a separate privileged operator action.
+Runtime telemetry needs an appropriate Entra data-plane identity and role,
+such as Monitoring Metrics Publisher for Application Insights ingestion.
+This template does not grant telemetry publishing permissions or install an SDK.
+
+Parameter file
+Keep operator configuration outside the repository. For example:
+  $configDir = Join-Path $env:USERPROFILE 'Agent365-Config'
+  $null = New-Item -ItemType Directory -Path $configDir -Force
+  $p = Join-Path $configDir 'parameters.json'
+  if (Test-Path -LiteralPath $p) { throw 'Parameter file already exists. Review it instead of overwriting it.' }
+  Copy-Item -LiteralPath .\infra\parameters.example.json -Destination $p
+  notepad $p
+Do not commit tenant IDs, operator details, approved IPs or removal plans.
+Keep scripts\azure\.work for generated compilation and validation scratch.
+Replace all angle-bracket placeholders. Include every parameter:
+  location: canonical approved Azure region, for example eastus.
+  owner: nonempty owner tag, no leading/trailing spaces; up to 256 characters.
+  workspaceName: 4-63 letters/digits/hyphens, alphanumeric first/last.
+  applicationInsightsName: 2-255 letters/digits/dots/underscores/hyphens,
+    alphanumeric first/last.
+  dailyQuotaGb: positive 32-bit integer GB/day. Default 1.
+  enableSentinel: JSON boolean. Default false.
+  enableAzureOpenAI: JSON boolean. Default false.
+  openAIAccountName: empty when disabled, otherwise globally unique account
+    and custom subdomain; 3-63 lowercase letters/digits/hyphens.
+  approvedIPv4Ranges: JSON array, empty when disabled. When OpenAI is enabled,
+    require at least one explicitly approved public egress address or CIDR.
+    Single addresses and /24 through /32 are accepted. No /0, broad supernet,
+    duplicate, invalid octet, host bits in CIDR, private, loopback, link-local
+    or multicast address is accepted. Do not use documentation example IPs.
+    This validation cannot determine whether the customer approved an address.
+  modelDeploymentName: explicit deployment name when enabled.
+  modelName: explicit model identifier when enabled; no assumed model.
+  modelVersion: explicit version string when enabled; no assumed version.
+  modelSku: exact regional deployment SKU when enabled; no assumed SKU.
+  modelCapacity: positive operator-selected integer when enabled; otherwise 0.
+  operatorPrincipalObjectId: empty, or the human operator tenant object GUID.
+    Requires enableAzureOpenAI=true. No default identity assignment.
+Model strings use letters/digits/dots/underscores/hyphens.
+The example is intentionally not deployable without editing.
+The scripts reject placeholders, unknown/missing parameters, references instead
+of literal values, wrong JSON types and invalid network/identity inputs.
+Use these scripts rather than deploying main.bicep directly: conditional and
+IPv4 approval checks are enforced by the PowerShell validation layer.
+
+Local checks only
+Run from the repository root:
+  .\scripts\azure\Test-Prerequisites.ps1
+  $p = Join-Path $env:USERPROFILE 'Agent365-Config\parameters.json'
+  .\scripts\azure\Test-Prerequisites.ps1 -ParametersFile $p
+  .\scripts\azure\Invoke-Deployment.ps1 -ParametersFile $p
+  python -B -m unittest discover -s tests\infra -p "test_*.py" -v
+These commands do not read subscriptions or invoke cloud what-if.
+Compiler output is placed under scripts\azure\.work and removed afterward.
+The tests shadow az for all lifecycle calls. Only Bicep compilation uses the
+real CLI. They check PowerShell parsing, tags, tenant, drift, CLI failures,
+confirmation gates, parameter rules and template structural invariants.
+
+Read-only Azure plan
+Set exact values in your PowerShell session:
+  $sub = '<subscription-guid>'
+  $tenant = '<independently-approved-tenant-guid>'
+  $rg = '<existing-dedicated-resource-group>'
+  $p = Join-Path $env:USERPROFILE 'Agent365-Config\parameters.json'
+  .\scripts\azure\Invoke-Deployment.ps1 -ParametersFile $p -SubscriptionId $sub -ExpectedTenantId $tenant -ResourceGroupName $rg -Plan
+
+The script calls az account show --subscription and checks subscription ID,
+tenant ID, Enabled state and AzureCloud. Every cloud command carries
+--subscription. It does not use az account set.
+It checks the group and every expected taggable resource, including OpenAI
+model deployment child tags. A resource with missing/mixed tags is rejected.
+Resources outside the exact parameter-derived ID allowlist are rejected,
+even when they have matching tags.
+The compiler and literal parameter snapshot are frozen for the plan/apply.
+The Azure what-if is incremental; no complete-mode deployment is used.
+Review all what-if changes. A plan does not mean it is safe or quota is ready.
+
+Apply only after review
+  .\scripts\azure\Invoke-Deployment.ps1 -ParametersFile $p -SubscriptionId $sub -ExpectedTenantId $tenant -ResourceGroupName $rg -Apply -Confirm
+Both switches are required. -Apply alone and -Confirm:$false fail closed.
+The script repeats what-if, then prompts through PowerShell ShouldProcess.
+Answer No to stop. A noninteractive host cannot silently approve the prompt.
+-WhatIf can be added to suppress the Azure write even with both switches.
+Inventory is checked before and after the prompt, and the frozen inputs are
+hashed again. A detected change aborts. Errors and CLI nonzero exit codes stop
+execution. There is no automatic retry, repair, rollback or privilege grant.
+Success is followed by another ownership/inventory read.
+
+Child-resource guard
+Most declared resources carry both ownership tags. ARM role assignments and
+Sentinel onboarding do not support tags in their stable schemas. They are
+narrow exceptions, not an untagged-resource bypass:
+  Sentinel: only the default state under the guarded expected workspace,
+    and only if the Sentinel parameter is true.
+  RBAC: only the expected user, OpenAI User role, exact guarded account scope
+    and template ownership description. Unrelated direct role grants fail.
+  Built-in workspace tables and system-managed OpenAI RAI policies: snapshot
+    configuration as service-owned children; remove only with their parent.
+Custom _CL tables, diagnostic settings, workspace data exports/data sources/
+saved searches/linked services/linked storage/storage insight configs,
+OpenAI private endpoint connections/blocklists/commitment plans/custom RAI
+policies, and Sentinel rules/connectors/watchlists/bookmarks/incidents are
+outside this minimal lab and cause an abort when found. This includes hunting
+bookmarks, closed incidents and automation rules that hold investigation state.
+The script reads all pages of these Sentinel collections whenever the provider
+is registered, even if onboarding is absent or the Sentinel flag is false.
+It repeats these checks in every inventory read, including deletion rechecks.
+The verified empty collections and provider state enter the workspace digest.
+Failed reads stop cleanup; absence of onboarding is not evidence of no data.
+Runtime extensions require separate review.
+Disable and remove added connectors and custom child resources manually only
+after explicit owner approval. Restore manually changed lab settings to their
+approved baseline. Preserve required evidence first. Do not bypass the guard
+or remove shared children. If a child cannot be removed safely, stop cleanup.
+After this manual work, create a fresh minimal-resource removal plan.
+Do not delete bookmarks or incidents just to pass the guard. Preserve required
+investigation evidence and obtain separate owner approval for any manual
+removal. If the evidence must remain, retain the workspace and stop cleanup.
+Group/subscription inherited role grants are not removed. Azure deployment
+history is not treated as a deployable lab child and is retained.
+Pagination is followed only within the selected public Azure subscription.
+Insufficient read rights, unsupported service APIs or failed reads abort;
+they never mean an empty inventory.
+
+Removal and rollback
+No resource-group delete is used. Keeping the group avoids deleting a resource
+that another operator adds to that group after planning.
+Stop runtime traffic and arrange a no-concurrent-writes maintenance window.
+Review retention/export needs before deletion. These scripts do not export
+telemetry, purge soft-deleted services or delete tenant objects.
+Use the SAME parameter file used for deployment. Keep enabled flags true
+until the corresponding resources have been removed.
+
+Default removal only validates local parameters:
+  .\scripts\azure\Remove-Lab.ps1 -ParametersFile $p
+Save a fresh read-only cloud inventory:
+  $removePlan = Join-Path $env:USERPROFILE 'Agent365-Config\remove-01.json'
+  .\scripts\azure\Remove-Lab.ps1 -ParametersFile $p -SubscriptionId $sub -ExpectedTenantId $tenant -ResourceGroupName $rg -Plan -PlanFile $removePlan
+Inspect the listed exact IDs and the saved JSON. Plans contain only IDs,
+metadata hashes and inputs' hash, not tokens or credentials.
+A plan is bound to subscription, tenant, parameters and resource configuration.
+It expires in one hour and existing plan files are never overwritten.
+Then, only if every target is approved:
+  .\scripts\azure\Remove-Lab.ps1 -ParametersFile $p -SubscriptionId $sub -ExpectedTenantId $tenant -ResourceGroupName $rg -PlanFile $removePlan -Apply -Confirm
+
+The saved inventory must match fresh group/resource/child snapshots.
+The script enumerates targets again and waits for ShouldProcess confirmation.
+It rechecks after the prompt and before each exact-ID deletion.
+Children are removed first, then Application Insights, OpenAI and workspace.
+Each CLI deletion waits for completion; disappearance and the unchanged
+remaining inventory are checked after each delete.
+A service-side configuration change can also invalidate the plan.
+If any step fails, stop. Inspect Azure, then make a new plan for the remainder.
+The original plan is not automatically reusable after partial removal.
+The group, its tags, its deployment history and tenant identities remain.
+Resource deletion can soft-delete the service. No permanent purge is attempted.
+
+Azure does not provide an atomic inventory-and-delete transaction across these
+resources. Checks reduce races but cannot prevent a concurrent child write
+between the final read and parent deletion. Enforce exclusive operator access
+and a maintenance window. Never use these scripts for a shared workspace.
+The supported child inventory is deliberately narrow, not a general Azure
+resource-discovery or tenant cleanup tool.
+
+Incremental deployment does not remove resources when a flag changes to false.
+The guard will reject unexpected existing resources rather than silently
+orphaning or deleting them. Use removal with the original parameters.
+For a failed deployment, inspect the partial resources, then use the same
+parameters to create a removal plan. No automatic rollback destroys evidence.
+For a configuration rollback, review and reapply the last approved parameter
+file. Deleted telemetry/model state is not restored by redeploying a template.
+Do not purge or delete unrelated/shared resources to make a retry succeed.
+
+Official resource references
+Checked against public Microsoft Learn resource references, 2026-09-18.
+https://learn.microsoft.com/azure/templates/microsoft.operationalinsights/2023-09-01/workspaces
+https://learn.microsoft.com/azure/templates/microsoft.insights/2020-02-02/components
+https://learn.microsoft.com/azure/templates/microsoft.securityinsights/2024-03-01/onboardingstates
+https://learn.microsoft.com/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts
+https://learn.microsoft.com/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts/deployments
+https://learn.microsoft.com/azure/templates/microsoft.authorization/2022-04-01/roleassignments
+https://learn.microsoft.com/azure/role-based-access-control/built-in-roles/ai-machine-learning#cognitive-services-openai-user

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": { "value": "<approved-azure-region>" },
+    "owner": { "value": "<owner-matching-resource-group-tag>" },
+    "workspaceName": { "value": "<dedicated-workspace-name>" },
+    "applicationInsightsName": { "value": "<dedicated-application-insights-name>" },
+    "dailyQuotaGb": { "value": 1 },
+    "enableSentinel": { "value": false },
+    "enableAzureOpenAI": { "value": false },
+    "openAIAccountName": { "value": "" },
+    "approvedIPv4Ranges": { "value": [] },
+    "modelDeploymentName": { "value": "" },
+    "modelName": { "value": "" },
+    "modelVersion": { "value": "" },
+    "modelSku": { "value": "" },
+    "modelCapacity": { "value": 0 },
+    "operatorPrincipalObjectId": { "value": "" }
+  }
+}

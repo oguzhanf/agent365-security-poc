@@ -1,0 +1,123 @@
+{
+  "sources": [
+    {
+      "id": "T01",
+      "title": "Microsoft OpenTelemetry Python 1.3.9 source",
+      "url": "https://github.com/microsoft/opentelemetry-distro-python/tree/8c874394b60549c5a6a351a0ef72a64659c9eafa",
+      "retrieved": "2026-09-18",
+      "note": "Pinned manual scopes, SDK metadata keys, self-telemetry switches, exporter transport, and durable-delivery behavior. Installed offline validation completed."
+    },
+    {
+      "id": "T02",
+      "title": "Direct OpenTelemetry authentication and response contract",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/developer/direct-open-telemetry-integration",
+      "retrieved": "2026-09-18",
+      "note": "Blueprint two-stage exchange, public-cloud audience, S2S role, exact route, licence prerequisites, and per-destination rejection."
+    },
+    {
+      "id": "T03",
+      "title": "Agent 365 observability concepts",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/developer/observability-concepts",
+      "retrieved": "2026-09-18",
+      "note": "Observability boundaries, accepted activities, downstream surfaces, and ingestion limitations. Visibility is not enforcement."
+    },
+    {
+      "id": "T04",
+      "title": "Create an agent identity blueprint",
+      "url": "https://learn.microsoft.com/en-us/entra/agent-id/create-blueprint",
+      "retrieved": "2026-09-18",
+      "note": "Dedicated blueprint creation, portal path, owners, roles, and credential prerequisites."
+    },
+    {
+      "id": "T05",
+      "title": "Create and delete agent identities",
+      "url": "https://learn.microsoft.com/en-us/entra/agent-id/create-delete-agent-identities",
+      "retrieved": "2026-09-18",
+      "note": "Child identity lifecycle and separation of application IDs from service-principal object IDs."
+    },
+    {
+      "id": "T06",
+      "title": "Official blueprint-derived S2S token exchange sample",
+      "url": "https://github.com/microsoft/opentelemetry-distro-dotnet/tree/8bfccd2c89fc3386e8bbf3828eacbc6f59954e19/examples/Microsoft.OpenTelemetry.Agent365.S2S.Demo",
+      "retrieved": "2026-09-18",
+      "note": "Blueprint secret, FMI path, child assertion exchange, and cache reference. This source sample includes changes beyond NuGet 1.1.0."
+    },
+    {
+      "id": "T07",
+      "title": "Grant agents access to Microsoft 365 resources",
+      "url": "https://learn.microsoft.com/en-us/entra/agent-id/grant-agent-access-microsoft-365",
+      "retrieved": "2026-09-18",
+      "note": "Application permission grants, admin consent, direct child app-role assignments, and separate Azure RBAC boundaries."
+    },
+    {
+      "id": "T08",
+      "title": "Configure inheritable permissions for agent identity blueprints",
+      "url": "https://learn.microsoft.com/en-us/entra/agent-id/configure-inheritable-permissions-blueprints",
+      "retrieved": "2026-09-18",
+      "note": "Resource-specific inheritance, noScopes, allAllowedRoles, POST and PATCH behavior, and future-grant implications."
+    },
+    {
+      "id": "T09",
+      "title": "Azure OpenAI API lifecycle",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/openai/api-version-lifecycle",
+      "retrieved": "2026-09-18",
+      "note": "Azure OpenAI v1 endpoint and API version compatibility. Actual model calls were not executed."
+    },
+    {
+      "id": "T10",
+      "title": "Azure OpenAI role-based access control",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry-classic/openai/how-to/role-based-access-control",
+      "retrieved": "2026-09-18",
+      "note": "Cognitive Services OpenAI User role for separate model access at account scope."
+    },
+    {
+      "id": "T11",
+      "title": "Grant an appRoleAssignment to a service principal",
+      "url": "https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-approleassignments?view=graph-rest-1.0",
+      "retrieved": "2026-09-18",
+      "note": "Application role assignment request, object identifier semantics, provisioning permissions, and administrative role requirements."
+    },
+    {
+      "id": "T12",
+      "title": "Agent 365 developer CLI source snapshot",
+      "url": "https://github.com/microsoft/Agent365-devTools/tree/08e48a963dd879c6938d032e97e87ccbb03613de",
+      "retrieved": "2026-09-18",
+      "note": "Current command registration and broad setup defaults. No least-privilege claim is made for the setup-all workflow."
+    },
+    {
+      "id": "T13",
+      "title": "Agent 365 setup command reference, updated September 1",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/developer/reference/cli/setup",
+      "retrieved": "2026-09-18",
+      "note": "Registration-only option and provisioning-client consent. Generic default setup examples are not an observability-only procedure."
+    },
+    {
+      "id": "T14",
+      "title": "Shipped CLI 1.1.221 registration-only orchestrator",
+      "url": "https://github.com/microsoft/Agent365-devTools/blob/ea1579f37ff6ec549ecc78d0c57ef37f2fe2ccaf/src/Microsoft.Agents.A365.DevTools.Cli/Commands/SetupSubcommands/NonDwBlueprintSetupOrchestrator.cs",
+      "retrieved": "2026-09-18",
+      "note": "ExecuteAsync skips blueprint and grant phases; ExecuteAgentIdentityAndRegistrationAsync skips identity, endpoint, and project synchronization. agenticAppId holds the child SP object ID. Local --version and --help verified."
+    },
+    {
+      "id": "T15",
+      "title": "Shipped CLI Graph registration contract and readback",
+      "url": "https://github.com/microsoft/Agent365-devTools/blob/ea1579f37ff6ec549ecc78d0c57ef37f2fe2ccaf/src/Microsoft.Agents.A365.DevTools.Cli/Services/GraphApiService.cs",
+      "retrieved": "2026-09-18",
+      "note": "RegisterAgentInstanceAsyncV2, AgentRegistrationExistsAsync, and DeleteAgentRegistrationAsync use /beta/copilot/agentRegistrations. Source identity and managedByAppId are distinct from runtime token identifiers."
+    },
+    {
+      "id": "T16",
+      "title": "Shipped CLI blueprint managerApplications creation property",
+      "url": "https://github.com/microsoft/Agent365-devTools/blob/ea1579f37ff6ec549ecc78d0c57ef37f2fe2ccaf/src/Microsoft.Agents.A365.DevTools.Cli/Commands/SetupSubcommands/BlueprintSubcommand.cs",
+      "retrieved": "2026-09-18",
+      "note": "Blueprint creation manifest sets managerApplications before POST /beta/applications. Registration-only is not a missing-link repair procedure."
+    },
+    {
+      "id": "T17",
+      "title": "Shipped CLI manager and AgentX application identifiers",
+      "url": "https://github.com/microsoft/Agent365-devTools/blob/ea1579f37ff6ec549ecc78d0c57ef37f2fe2ccaf/src/Microsoft.Agents.A365.DevTools.Cli/Constants/AuthenticationConstants.cs",
+      "retrieved": "2026-09-18",
+      "note": "A365ManagerAppId=e8be65d6-d430-4289-a665-51bf2a194bda and AgentXAppId=59eca866-2f46-40b8-96ff-63f663121ef9. Neither is the telemetry resource or child runtime appId."
+    }
+  ]
+}

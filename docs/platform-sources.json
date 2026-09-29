@@ -1,0 +1,249 @@
+{
+  "sources": [
+    {
+      "id": "P01",
+      "title": "Microsoft Agent 365 overview",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/overview",
+      "retrieved": "2026-09-18",
+      "note": "Defines commercial availability, per-user licensing, eligible subscriptions, and Microsoft 365 E7 inclusion."
+    },
+    {
+      "id": "P02",
+      "title": "Choose an Agent 365 integration option",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/developer/choose-integration-option",
+      "retrieved": "2026-09-18",
+      "note": "Separates built-in integration, registry sync preview, and developer SDK integration. Inventory synchronization does not supply runtime instrumentation."
+    },
+    {
+      "id": "P03",
+      "title": "Agent roles and permissions",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-roles-perms?view=o365-worldwide",
+      "retrieved": "2026-09-18",
+      "note": "Describes governance and reader roles. Prefer AI Administrator for supported governance operations."
+    },
+    {
+      "id": "P04",
+      "title": "Microsoft 365 agent registry",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-registry?view=o365-worldwide",
+      "retrieved": "2026-09-18",
+      "note": "Supplies current Registry navigation and separate publisher, platform, and channel classifications."
+    },
+    {
+      "id": "P05",
+      "title": "Copilot Studio licensing and subscriptions",
+      "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-licensing-subscriptions",
+      "retrieved": "2026-09-18",
+      "note": "A free trial supports creation and testing, not publication. The Teams-included plan has different capabilities."
+    },
+    {
+      "id": "P06",
+      "title": "Create a Copilot Studio agent",
+      "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/fundamentals-get-started",
+      "retrieved": "2026-09-18",
+      "note": "Documents the standard-harness quickstart, knowledge configuration, and test panel."
+    },
+    {
+      "id": "P07",
+      "title": "Configure Copilot Studio end-user authentication",
+      "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/configuration-end-user-authentication",
+      "retrieved": "2026-09-18",
+      "note": "Teams and Microsoft 365 channels require Authenticate with Microsoft in the documented configuration."
+    },
+    {
+      "id": "P08",
+      "title": "Publish a Copilot Studio agent to Teams and Microsoft 365",
+      "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/publication-add-bot-to-microsoft-teams",
+      "retrieved": "2026-09-18",
+      "note": "Documents channel setup, personal Teams installation, organization approval, and the Start over conversation command."
+    },
+    {
+      "id": "P09",
+      "title": "Copilot Studio observability integration",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/builder/observability",
+      "retrieved": "2026-09-18",
+      "note": "Describes automatic telemetry and authenticated-session, multitenant, agent-name, truncation, and redaction limits."
+    },
+    {
+      "id": "P10",
+      "title": "View agent details and activity",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-details?view=o365-worldwide",
+      "retrieved": "2026-09-18",
+      "note": "Documents Details, Permissions, Data & tools, Certification, and Activity. Its Activity support list differs from Studio guidance."
+    },
+    {
+      "id": "P11",
+      "title": "Deploy a Foundry hosted agent",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/quickstarts/quickstart-hosted-agent",
+      "retrieved": "2026-09-18",
+      "note": "Documents azd 1.27.1+, provisioning roles, the basic Responses sample, and remote source-code builds."
+    },
+    {
+      "id": "P12",
+      "title": "Foundry integration with Agent 365",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/agent-365-integration",
+      "retrieved": "2026-09-18",
+      "note": "Distinguishes prompt and hosted agents. Hosted activity collection requires Agent 365 SDK configuration."
+    },
+    {
+      "id": "P13",
+      "title": "Publish Foundry agents to Teams and Microsoft 365 Copilot",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/publish-copilot",
+      "retrieved": "2026-09-18",
+      "note": "Defines publication roles, active-version selection, Direct publish, audience options, and the public-network restriction."
+    },
+    {
+      "id": "P14",
+      "title": "Configure Foundry Agent 365 data collection",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/configure-agent-365-data-collection",
+      "retrieved": "2026-09-18",
+      "note": "Resource-level logging controls prompt agents. Hosted SDK configuration can override resource-level disablement."
+    },
+    {
+      "id": "P15",
+      "title": "Grant Foundry Agent 365 observability permissions",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/grant-agent-365-permissions",
+      "retrieved": "2026-09-18",
+      "note": "Documents agentIdentityId and Agent365.Observability.OtelWrite against Agent365Observability. Allow two to five minutes for propagation."
+    },
+    {
+      "id": "P16",
+      "title": "Third-party Agent 365 integrations",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/third-party-agents",
+      "retrieved": "2026-09-18",
+      "note": "Separates agents, Frontier AI teammates, agent factories, and coming-soon listings. A listing is not a vendor entitlement."
+    },
+    {
+      "id": "P17",
+      "title": "Configure agent settings",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-settings?view=o365-worldwide",
+      "retrieved": "2026-09-18",
+      "note": "Documents Allowed agent types and external-publisher settings."
+    },
+    {
+      "id": "P18",
+      "title": "Manage agents in Microsoft 365",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-actions?view=o365-worldwide",
+      "retrieved": "2026-09-18",
+      "note": "Documents registry installation, selected-user deployment, permission review, and administrative agent actions."
+    },
+    {
+      "id": "P19",
+      "title": "Zendesk Support Assistant for Microsoft Agent 365",
+      "url": "https://support.zendesk.com/hc/en-us/articles/10588328067738-Getting-started-with-the-Zendesk-Support-Assistant-for-Microsoft-Agent-365",
+      "retrieved": "2026-09-18",
+      "note": "Provides eligible Zendesk plans, Teams installation, login commands, account permissions, example requests, and logout."
+    },
+    {
+      "id": "P20",
+      "title": "Connected platforms in the Microsoft 365 agent registry",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/admin/connected-platforms",
+      "retrieved": "2026-09-18",
+      "note": "Defines connection and manual-sync procedures, supported platforms, exact AWS permissions, and Claude workspace requirements. OpenAI is absent."
+    },
+    {
+      "id": "P21",
+      "title": "Create and configure an Amazon Bedrock agent",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-create.html",
+      "retrieved": "2026-09-18",
+      "note": "Documents console creation, service role, model, instructions, preparation, and testing without mandatory action groups or knowledge bases."
+    },
+    {
+      "id": "P22",
+      "title": "Claude Managed Agents quickstart",
+      "url": "https://platform.claude.com/docs/en/managed-agents/quickstart",
+      "retrieved": "2026-09-18",
+      "note": "Documents beta agents, environments, sessions, events, and streaming. The SDK supplies the managed-agents-2026-04-01 beta header."
+    },
+    {
+      "id": "P23",
+      "title": "Claude Managed Agents overview",
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "retrieved": "2026-09-18",
+      "note": "Describes stateful beta execution. Managed Agents currently lack Zero Data Retention and HIPAA BAA eligibility."
+    },
+    {
+      "id": "P24",
+      "title": "Manage Local Agents in Microsoft 365",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-local?view=o365-worldwide",
+      "retrieved": "2026-09-18",
+      "note": "Defines Local Agents Frontier prerequisites and application-blocking matrix. Native Codex CLI and Claude Code blocking is unavailable here."
+    },
+    {
+      "id": "P25",
+      "title": "Manage Shadow AI agents in Microsoft 365",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-shadow-ai?view=o365-worldwide",
+      "retrieved": "2026-09-18",
+      "note": "Documents OpenClaw discovery and application blocking. Intune propagation can affect all managed Windows devices."
+    },
+    {
+      "id": "P26",
+      "title": "Discover local AI agents with Defender for Endpoint",
+      "url": "https://learn.microsoft.com/en-us/defender-endpoint/discover-local-ai-agents",
+      "retrieved": "2026-09-18",
+      "note": "Defines Defender for Endpoint Plan 2 discovery prerequisites, inventory navigation, identity semantics, MCP configuration, and AgentsInfo hunting."
+    },
+    {
+      "id": "P27",
+      "title": "OpenAI Codex official repository",
+      "url": "https://github.com/openai/codex",
+      "retrieved": "2026-09-18",
+      "note": "Provides official Codex CLI installation and supported sign-in options."
+    },
+    {
+      "id": "P28",
+      "title": "Claude Code quickstart",
+      "url": "https://code.claude.com/docs/en/quickstart",
+      "retrieved": "2026-09-18",
+      "note": "Provides official Windows installation, first use, and supported authentication arrangements."
+    },
+    {
+      "id": "P29",
+      "title": "OpenClaw getting started",
+      "url": "https://docs.openclaw.ai/start/getting-started",
+      "retrieved": "2026-09-18",
+      "note": "Provides provider installation, onboarding, gateway checks, and dashboard use. Validate the selected runtime against endpoint coverage."
+    },
+    {
+      "id": "P30",
+      "title": "Agent 365 in the Frontier program",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/frontier",
+      "retrieved": "2026-09-18",
+      "note": "Documents preview terms, enrollment, licensing, and absent SLA. Its E7 requirement differs from other Frontier guidance."
+    },
+    {
+      "id": "P31",
+      "title": "Get started with Frontier",
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/manage/get-started-frontier?view=o365-worldwide",
+      "retrieved": "2026-09-18",
+      "note": "Documents Copilot Frontier enrollment for specific users and participating-user licensing."
+    },
+    {
+      "id": "P32",
+      "title": "Publish a Foundry hosted agent as an Agent 365 autopilot",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/agent-365",
+      "retrieved": "2026-09-18",
+      "note": "Documents blueprint approval, preview seats, template consent, Teams instance creation, and autopilot publication fields."
+    },
+    {
+      "id": "P33",
+      "title": "Foundry Python autopilot sample publication script",
+      "url": "https://github.com/microsoft-foundry/foundry-samples/blob/e899cd1ac6b372532954d0d4c22c4abc461621db/samples/python/foundry-autopilot-agent/scripts/publish-digital-worker.ps1",
+      "retrieved": "2026-09-18",
+      "note": "Pinned source snapshot dated 2026-09-17T15:39:41Z. Source existence was checked, not deployment. Resolve the researched template-field discrepancy before provisioning."
+    },
+    {
+      "id": "P34",
+      "title": "Defender for Endpoint AI agent runtime protection overview",
+      "url": "https://learn.microsoft.com/en-us/defender-endpoint/ai-agent-runtime-protection-overview",
+      "retrieved": "2026-09-18",
+      "note": "September 16 guidance separates runtime threat protection from application blocking. Claude Code and Codex CLI support prompt and tool inspection."
+    },
+    {
+      "id": "P35",
+      "title": "Amazon Bedrock Agents Classic maintenance mode",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html",
+      "retrieved": "2026-09-18",
+      "note": "Agents Classic closed to new customers on July 30, 2026. Existing Agents Classic customers can continue. Existing AWS account ownership alone is insufficient."
+    }
+  ]
+}

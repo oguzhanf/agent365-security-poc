@@ -1,0 +1,101 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Synthetic Agent 365 inventory lab. Existing Bedrock Agents Classic customers only. No connector credentials.",
+  "Parameters": {
+    "AgentName": {
+      "Type": "String",
+      "AllowedPattern": "^[A-Za-z][A-Za-z0-9-]{0,63}$"
+    },
+    "FoundationModelId": {
+      "Type": "String",
+      "Description": "Customer-approved, available direct foundation model ID in this region. No inference profiles.",
+      "AllowedPattern": "^(?!(us|eu|apac|global)\\.)[a-z0-9][a-z0-9-]*\\.[a-z0-9][a-z0-9.:-]*$",
+      "MaxLength": 200
+    },
+    "Owner": {
+      "Type": "String",
+      "Description": "Non-personal lab owner or team alias.",
+      "AllowedPattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+    },
+    "TrustedAgentId": {
+      "Type": "String",
+      "Default": "*",
+      "Description": "Bootstrap wildcard is account/region restricted. Replace with AgentId after creation.",
+      "AllowedPattern": "^(\\*|[A-Za-z0-9]{10})$"
+    }
+  },
+  "Resources": {
+    "AgentServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Description": "Synthetic Bedrock lab; invoke one approved regional foundation model only.",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": { "Service": "bedrock.amazonaws.com" },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+              "StringEquals": { "aws:SourceAccount": { "Ref": "AWS::AccountId" } },
+              "ArnLike": {
+                "AWS:SourceArn": {
+                  "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:agent/${TrustedAgentId}"
+                }
+              }
+            }
+          }]
+        },
+        "Policies": [{
+          "PolicyName": "InvokeOneApprovedFoundationModel",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Effect": "Allow",
+              "Action": ["bedrock:InvokeModel"],
+              "Resource": [{
+                "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${FoundationModelId}"
+              }]
+            }]
+          }
+        }],
+        "Tags": [
+          { "Key": "Project", "Value": "Agent365SecurityPoC" },
+          { "Key": "ManagedBy", "Value": "provider-demo" },
+          { "Key": "Owner", "Value": { "Ref": "Owner" } },
+          { "Key": "Data", "Value": "synthetic" }
+        ]
+      }
+    },
+    "DemoAgent": {
+      "Type": "AWS::Bedrock::Agent",
+      "Properties": {
+        "AgentName": { "Ref": "AgentName" },
+        "Description": "Synthetic inventory demo. No tools, knowledge bases, customer data, or connectors.",
+        "AgentResourceRoleArn": { "Fn::GetAtt": ["AgentServiceRole", "Arn"] },
+        "FoundationModel": { "Ref": "FoundationModelId" },
+        "Instruction": "You are a synthetic lab assistant. Answer only simple arithmetic questions. Do not request personal information.",
+        "AgentCollaboration": "DISABLED",
+        "AutoPrepare": true,
+        "IdleSessionTTLInSeconds": 60,
+        "SkipResourceInUseCheckOnDelete": false,
+        "Tags": {
+          "Project": "Agent365SecurityPoC",
+          "ManagedBy": "provider-demo",
+          "Owner": { "Ref": "Owner" },
+          "Data": "synthetic"
+        },
+        "TestAliasTags": {
+          "Project": "Agent365SecurityPoC",
+          "Data": "synthetic"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "AgentId": { "Value": { "Ref": "DemoAgent" } },
+    "AgentArn": { "Value": { "Fn::GetAtt": ["DemoAgent", "AgentArn"] } },
+    "ServiceRoleArn": { "Value": { "Fn::GetAtt": ["AgentServiceRole", "Arn"] } },
+    "AccountId": { "Value": { "Ref": "AWS::AccountId" } },
+    "Region": { "Value": { "Ref": "AWS::Region" } }
+  }
+}

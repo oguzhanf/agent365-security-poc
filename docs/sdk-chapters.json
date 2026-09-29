@@ -1,0 +1,458 @@
+{
+  "chapters": [
+    {
+      "title": "SDK runtime: scope, prerequisites, and local setup",
+      "paragraphs": [
+        "This custom Python harness runs outbound-only. It has no server, incoming endpoint, deployment, publishing, or tenant provisioning.",
+        "The default mode is local_simulation. It reads bundled synthetic fixtures without loading SDK packages or using credentials.",
+        "The local fixture guard is application logic. It is not Microsoft Purview, Defender, Entra, or Agent 365 enforcement.",
+        "A model response is not proof of a security control. Record separate policy and downstream evidence."
+      ],
+      "sections": [
+        {
+          "title": "Approve prerequisites",
+          "steps": [
+            "Use a dedicated test tenant, blueprint, child agent identity, and approved Azure OpenAI deployment.",
+            "Approve licence eligibility, model cost, regions, outbound access, operator roles, and telemetry retention.",
+            "Use CPython 3.12 and a reviewed checkout. Keep credentials outside the checkout.",
+            "Run each mode in a fresh process. Do not use an auto-instrumented Python launcher.",
+            "Use public-cloud endpoints only. Sovereign clouds and custom gateways are not supported by this harness.",
+            "Do not use production files, personal information, arbitrary prompts, or additional tools."
+          ],
+          "notes": [
+            "The runtime ignores .env files. It never searches external folders or downloads models.",
+            "The fixture allowlist rejects path traversal, symlinks, junctions, reparse points, altered content, and oversized files.",
+            "Copy the reviewed repository to a normal local directory if its path contains a reparse point.",
+            "Sources: T01, T02, T03."
+          ]
+        },
+        {
+          "title": "Install the locked environment",
+          "steps": [
+            "Open PowerShell in the repository root.",
+            "Create an isolated environment. Do not activate it globally.",
+            "Install the full version lock with binary wheels.",
+            "Verify dependency consistency before running SDK modes.",
+            "Stop if installation fails. Do not remove dependency checks or substitute unreviewed package versions."
+          ],
+          "code": "py -3.12 -m venv .venv-runtime\n& .\\.venv-runtime\\Scripts\\python.exe -m pip install --only-binary=:all: -r requirements-runtime.lock.txt\nif ($LASTEXITCODE -ne 0) { throw 'Runtime installation failed.' }\n& .\\.venv-runtime\\Scripts\\python.exe -m pip check\nif ($LASTEXITCODE -ne 0) { throw 'Runtime dependency check failed.' }",
+          "notes": [
+            "Direct pins include microsoft-opentelemetry 1.3.9, OpenTelemetry 1.44.0, and azure-identity 1.25.3.",
+            "The transitive lock came from a successful Windows ARM64 CPython 3.12 installation on 18 September 2026.",
+            "The lock pins versions, not artifact hashes. Other operating systems and Python versions need separate validation.",
+            "Source: T01."
+          ]
+        },
+        {
+          "title": "Run the no-network checks",
+          "steps": [
+            "Run the default mode first. Confirm local_simulation, model_called=false, and ingestion_verified=false.",
+            "Run the standard-library suite with site packages disabled.",
+            "Run the installed SDK integration check in the isolated environment.",
+            "Confirm eight metadata spans and zero attempted network operations.",
+            "Run optional console instrumentation in a fresh process."
+          ],
+          "code": "python -S -m runtime\npython -S -m unittest discover -s tests\\runtime -p test_runtime.py -q\n& .\\.venv-runtime\\Scripts\\python.exe tests\\runtime\\sdk_offline_check.py\n& .\\.venv-runtime\\Scripts\\python.exe -m runtime --instrument",
+          "notes": [
+            "The integration check blocks socket connections, DNS, datagrams, and subprocesses before SDK imports.",
+            "It checks real manual scope APIs, parent relationships, identity attributes, serialization, redaction, and the pinned transport adapter.",
+            "It constructs the Agent 365 exporter but never calls export or obtains a token.",
+            "The default mode remains offline with poisoned exporter variables. Instrumented modes reject inherited endpoint overrides.",
+            "The application does not initialize the unified distro, auto-instrumentation, resource detectors, Azure Monitor, or SDK self-telemetry."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "SDK runtime: run the bounded Azure OpenAI model",
+      "paragraphs": [
+        "The --live-model flag authorizes actual Azure OpenAI requests. Model requests incur normal service costs.",
+        "Model authentication uses AzureCliCredential. Agent 365 authentication uses a separate blueprint-derived credential.",
+        "The model credential is not an Agent ID credential. Never reuse its token for Agent 365 ingestion."
+      ],
+      "sections": [
+        {
+          "title": "Configure the model identity",
+          "steps": [
+            "Choose an existing, approved Azure OpenAI account and a deployment that supports chat completions and function tools.",
+            "Grant the operator Cognitive Services OpenAI User at that account, not subscription scope.",
+            "Open a dedicated PowerShell session without inherited exporter, authority, or instrumentation overrides.",
+            "Select AzureCloud in that dedicated Azure CLI profile. Sign in to the exact model tenant.",
+            "Set the account endpoint, deployment name, and tenant GUID."
+          ],
+          "code": "$env:AZURE_CONFIG_DIR = Join-Path (Get-Location) '.venv-runtime\\azure-cli-profile'\naz cloud set --name AzureCloud\n$env:MODEL_TENANT_ID = Read-Host 'Model tenant GUID'\naz login --tenant $env:MODEL_TENANT_ID\n$env:AZURE_OPENAI_ENDPOINT = Read-Host 'Azure OpenAI endpoint, https://ACCOUNT.openai.azure.com'\n$env:AZURE_OPENAI_DEPLOYMENT = Read-Host 'Existing tool-capable deployment name'",
+          "notes": [
+            "Azure CLI writes its own token cache in the dedicated profile. The runtime does not write a token cache.",
+            "The v1 model scope is https://ai.azure.com/.default. Dated API versions use https://cognitiveservices.azure.com/.default.",
+            "Tenant, public-cloud issuer, audience, and expiry are checked before the model request.",
+            "Decoded claims provide response consistency checks, not JWT signature validation or independent authorization.",
+            "TLS and the resource service remain the authentication boundaries.",
+            "Sources: T09, T10."
+          ]
+        },
+        {
+          "title": "Run the model without tenant telemetry",
+          "steps": [
+            "Run the approved-procedure scenario without --export-agent365.",
+            "Confirm live_model and console_metadata_only. Record the trace and conversation identifiers.",
+            "Confirm an allowed read_fixture decision and approved_reference_present=true.",
+            "Run the restricted and injection scenarios separately.",
+            "Treat missing tool decisions as inconclusive. The model can return a final answer without selecting a tool.",
+            "Stop if the model does not support the request contract. Do not enable unsupported tools."
+          ],
+          "code": "& .\\.venv-runtime\\Scripts\\python.exe -m runtime --live-model --scenario approval --max-rounds 4\n& .\\.venv-runtime\\Scripts\\python.exe -m runtime --live-model --scenario restricted --max-rounds 4\n& .\\.venv-runtime\\Scripts\\python.exe -m runtime --live-model --scenario injection --max-rounds 4",
+          "notes": [
+            "Live-model mode enables metadata-only console instrumentation automatically. It does not enable Agent 365 export.",
+            "The default API version is v1. Use --api-version 2024-10-21 only with a compatible approved deployment.",
+            "Each run permits one to six model rounds, four tool calls per round, and 800 completion tokens per request.",
+            "The harness bounds request bodies, response bodies, arguments, fixture bytes, and conversation size.",
+            "Unknown tools receive unknown_tool. Restricted fixture reads receive application_policy.",
+            "The tool loop has no shell, write, delete, remote fetch, or arbitrary-file operation.",
+            "CLI results contain decisions and marker booleans, not model answers or fixture content.",
+            "A restricted denial proves only local application behavior. An injection result does not certify a Microsoft prompt shield.",
+            "Sources: T03, T09."
+          ]
+        },
+        {
+          "title": "Understand the endpoint and error limits",
+          "items": [
+            "Only exact ACCOUNT.openai.azure.com hosts are accepted for model endpoints.",
+            "User information, custom paths, query strings, fragments, and non-443 ports are rejected.",
+            "Entra exchange uses login.microsoftonline.com and the configured tenant GUID.",
+            "The application HTTP transport uses verified TLS, a 20-second socket timeout, and no inherited proxies.",
+            "Redirects are rejected. Tokens and blueprint secrets are not forwarded to redirect destinations.",
+            "There are no application HTTP retries or durable failed-payload storage.",
+            "Azure CLI credential acquisition has a 20-second process timeout.",
+            "HTTP and authentication errors use fixed messages. Response bodies and tokens are not printed."
+          ],
+          "notes": [
+            "The socket timeout is not a total run deadline. Stop a stalled test using normal process controls.",
+            "Model output remains nondeterministic. Marker booleans are observations, not policy verdicts."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "SDK runtime: provision a dedicated observability identity",
+      "paragraphs": [
+        "Perform these steps only after tenant-owner approval. The runtime never performs provisioning or permission grants.",
+        "Create a real blueprint and child agent identity. A normal app registration does not demonstrate blueprint-derived Agent ID.",
+        "Entra objects alone do not establish Agent 365 registration. ONB-04 requires registry evidence and matching runtime telemetry.",
+        "Use only Agent365.Observability.OtelWrite application permission. Mail, files, chat, and Work IQ permissions are unnecessary.",
+        "The CLI setup-all workflow includes broad defaults. It is not the least-privilege procedure for this test."
+      ],
+      "sections": [
+        {
+          "title": "Create the blueprint and child identity",
+          "steps": [
+            "Open Microsoft Entra admin center. Select the approved tenant.",
+            "Go to Entra ID > Agents > Agent blueprints > New agent blueprint (Preview).",
+            "Create a dedicated blueprint. Assign an accountable owner and sponsor.",
+            "Record the blueprint application ID and blueprint object ID separately.",
+            "Open the blueprint credential settings. An Agent ID Administrator creates a short-lived development secret.",
+            "Copy the secret value once into an approved secret manager. Do not copy its secret identifier.",
+            "Go to Entra ID > Agents > Agent identities > New agent identity (Preview).",
+            "Select the dedicated blueprint. Set an owner or sponsor as required.",
+            "Record the child application ID and child service-principal object ID separately.",
+            "Do not create an agent user, messaging endpoint, or published package for this outbound-only test."
+          ],
+          "notes": [
+            "A365_BLUEPRINT_ID means the blueprint appId. A365_AGENT_ID means the child appId.",
+            "Neither runtime variable accepts an object ID as a substitute.",
+            "Both values must be nonzero GUIDs and must differ.",
+            "The implementation fixes one tenant and one child identity. It is not a multitenant credential broker.",
+            "MODEL_TENANT_ID and A365_TENANT_ID must match during explicit export.",
+            "Production designs should use an approved federation or certificate strategy, not this development-secret adapter.",
+            "Sources: T04, T05, T06, T12."
+          ]
+        },
+        {
+          "title": "ONB-04 gate: verify Agent 365 manager linkage",
+          "paragraphs": [
+            "The blueprint's managerApplications must include the Agent 365 manager application.",
+            "Its application ID is e8be65d6-d430-4289-a665-51bf2a194bda. This is neither the child appId nor the observability resource.",
+            "The pinned CLI sets this property during blueprint creation. Registration-only does not create or repair the blueprint."
+          ],
+          "steps": [
+            "Have the approved provisioning operator read the dedicated blueprint using its object ID.",
+            "Check that the returned appId equals A365_BLUEPRINT_ID.",
+            "Require managerApplications to contain e8be65d6-d430-4289-a665-51bf2a194bda.",
+            "Save the property readback with tenant, blueprint object ID, blueprint appId, and UTC time.",
+            "If absent or unreadable, record ONB-04 as BLOCKED. Do not infer linkage from the blueprint's display name.",
+            "Have the platform owner approve a supported linkage repair or dedicated blueprint recreation before proceeding.",
+            "For recreation, review the pinned creation manifest's managerApplications property. Reapprove the new identity and credential mappings.",
+            "Do not use unrestricted setup to repair linkage or bypass the approved observability-only grants."
+          ],
+          "code": "GET https://graph.microsoft.com/beta/applications/{BLUEPRINT_OBJECT_ID}?$select=id,appId,displayName,managerApplications\n\nExpected managerApplications member:\n\"e8be65d6-d430-4289-a665-51bf2a194bda\"",
+          "notes": [
+            "A portal-created blueprint can lack this linkage. Its successful creation is not a registry acceptance result.",
+            "The gate deliberately supplies no unverified PATCH recipe for this preview property.",
+            "Review Commands/SetupSubcommands/BlueprintSubcommand.cs and Constants/AuthenticationConstants.cs at the shipped source revision.",
+            "The relevant source revision is ea1579f37ff6ec549ecc78d0c57ef37f2fe2ccaf. The earlier 08e48a963dd879c6938d032e97e87ccbb03613de snapshot matches these contracts.",
+            "Sources: T16, T17."
+          ]
+        },
+        {
+          "title": "ONB-04 gate: verify the registration-only CLI",
+          "steps": [
+            "Install the pinned CLI into the isolated tool directory, not the global tool path.",
+            "Run version and help commands only. These checks require no tenant sign-in.",
+            "Require version 1.1.221 and the --agent-registration-only option in setup all help.",
+            "Review the shipped orchestrator's registration-only branch before approving tenant execution.",
+            "Confirm that blueprint creation, runtime permission grants, identity creation, endpoint registration, and project synchronization are skipped.",
+            "Approve the separate provisioning client's registration permissions and operator access before execution.",
+            "Use the Microsoft-managed CLI client only where tenant policy permits it.",
+            "If using a custom client, review its consent requirements separately. Decline unexpected additional consent prompts.",
+            "Stop if installed help or source behavior differs. Record ONB-04 as BLOCKED pending an approved registration path."
+          ],
+          "code": "$env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'\ndotnet tool install Microsoft.Agents.A365.DevTools.Cli --version 1.1.221 --tool-path .\\.venv-runtime\\a365-cli\n$cli = (Resolve-Path .\\.venv-runtime\\a365-cli\\a365.exe).Path\n& $cli --version\n& $cli setup all --help",
+          "notes": [
+            "Local verification returned 1.1.221+ea1579f37f and confirmed --agent-registration-only. No tenant CLI command was executed.",
+            "The provisioning token requires AgentRegistration.ReadWrite.All. The registration implementation also reads the signed-in owner through /me.",
+            "These are provisioning-client permissions, not runtime permissions. Do not grant them to the child agent.",
+            "Registration-only can still check or request provisioning-client consent. It is not a promise of zero administrative side effects.",
+            "Do not run setup all without --agent-registration-only. Its default workflow is not observability-only.",
+            "Review Commands/SetupSubcommands/NonDwBlueprintSetupOrchestrator.cs, especially ExecuteAsync and ExecuteAgentIdentityAndRegistrationAsync.",
+            "The dry-run text can mention project settings. The reviewed execution branch skips synchronization for registration-only.",
+            "Sources: T13, T14, T15."
+          ]
+        },
+        {
+          "title": "Read the existing child with an approved Graph client",
+          "paragraphs": [
+            "Send this HTTP request through the approved provisioning client. It is not a PowerShell command.",
+            "Use the verified child object ID. Confirm appId and agentIdentityBlueprintId before creating the local registration configuration."
+          ],
+          "code": "GET https://graph.microsoft.com/beta/servicePrincipals/{CHILD_SERVICE_PRINCIPAL_OBJECT_ID}?$select=id,appId,displayName,agentIdentityBlueprintId"
+        },
+        {
+          "title": "Register only the approved existing identity",
+          "paragraphs": [
+            "Proceed only after both ONB-04 gates pass and the tenant owner approves the registration operation.",
+            "Use a separate CLI working directory. Never point configuration synchronization at the runtime checkout.",
+            "The CLI's agenticAppId field contains the child service-principal object ID in this version.",
+            "A365_AGENT_ID remains the child application ID. Never copy agenticAppId directly into that runtime variable."
+          ],
+          "steps": [
+            "Read the child service principal by object ID. Match its appId to A365_AGENT_ID.",
+            "Match its agentIdentityBlueprintId to A365_BLUEPRINT_ID and confirm the approved tenant.",
+            "Create the isolated CLI configuration below using verified identifiers, not display-name discovery.",
+            "Set aiTeammate=false and useBlueprint=true. Omit --m365, messaging endpoints, and project paths.",
+            "Preserve an existing agentRegistrationId if one is known. Do not discard it to force a duplicate registration.",
+            "Run the registration-only dry-run. Require reuse of the exact existing child identity.",
+            "If identity resolution fails, stop. Do not follow suggestions to run unrestricted setup.",
+            "After approval, run only the registration-only command shown below.",
+            "Decline unexpected provisioning, permission, repair, or consent prompts. Resolve them through the approved administrator.",
+            "Save the resulting agentRegistrationId separately from blueprint and child identifiers.",
+            "Read back that exact registration through the V2 endpoint. Compare identity, source, blueprint, owner, and manager fields.",
+            "Require both registry readback and matching runtime trace evidence before recording ONB-04 as passed."
+          ],
+          "code": "# Run from the repository root. These files initially contain identifiers only.\n$ErrorActionPreference = 'Stop'\n$cli = (Resolve-Path .\\.venv-runtime\\a365-cli\\a365.exe).Path\n$env:A365_TENANT_ID = Read-Host 'Verified tenant GUID'\n$env:A365_BLUEPRINT_ID = Read-Host 'Verified blueprint appId, not object ID'\n$env:A365_AGENT_ID = Read-Host 'Verified child appId, not object ID'\n$registryDirectory = Join-Path (Get-Location) '.venv-runtime\\a365-registration'\nNew-Item -ItemType Directory -Path $registryDirectory -Force | Out-Null\n$configPath = Join-Path $registryDirectory 'a365.config.json'\n$statePath = Join-Path $registryDirectory 'a365.generated.config.json'\nif ((Test-Path $configPath) -or (Test-Path $statePath)) {\n  throw 'Review existing registry state. Do not overwrite saved registration IDs.'\n}\n$childObjectId = Read-Host 'Verified child service-principal object ID, not appId'\n$identityName = Read-Host 'Exact existing child display name'\n$priorRegistration = Read-Host 'Existing registration ID, or leave empty when none exists'\n$static = @{\n  tenantId = $env:A365_TENANT_ID\n  clientAppId = 'f54280f4-395e-4ea8-9e48-bf2d4952aa14'\n  environment = 'prod'\n  aiTeammate = $false\n  useBlueprint = $true\n  authMode = 's2s'\n  agentIdentityDisplayName = $identityName\n  agentDescription = 'Dedicated synthetic security PoC'\n}\n$state = @{\n  agentBlueprintId = $env:A365_BLUEPRINT_ID\n  agenticAppId = $childObjectId\n}\nif ($priorRegistration) { $state.agentRegistrationId = $priorRegistration }\n$static | ConvertTo-Json | Set-Content $configPath -Encoding UTF8\n$state | ConvertTo-Json | Set-Content $statePath -Encoding UTF8\nPush-Location $registryDirectory\ntry {\n  & $cli setup all --agent-registration-only --dry-run\n  if ($LASTEXITCODE -ne 0) { throw 'The registration preview failed. Stop.' }\n} finally {\n  Pop-Location\n}\n\n# Review the preview and both identity gates before approving the write.\nif ((Read-Host 'Type REGISTER to approve the reviewed tenant registration') -cne 'REGISTER') {\n  throw 'Registration is not approved.'\n}\nPush-Location $registryDirectory\ntry {\n  & $cli setup all --agent-registration-only\n  if ($LASTEXITCODE -ne 0) { throw 'Registration failed; ONB-04 remains blocked.' }\n} finally {\n  Pop-Location\n}",
+          "notes": [
+            "Use the separate Graph readback below. Do not display provisioning tokens.",
+            "The V2 registration carries agentIdentityId and sourceAgentId equal to the verified child service-principal object ID.",
+            "agentIdentityBlueprintId must match the blueprint appId. Map the child object ID back to its runtime appId explicitly.",
+            "The CLI stamps managedByAppId=59eca866-2f46-40b8-96ff-63f663121ef9 for AgentX. Do not substitute the observability or managerApplications IDs.",
+            "managedByAppId and managerApplications represent different contracts. Neither is the runtime OAuth client_id.",
+            "The shipped GraphApiService.cs defines POST, GET, and DELETE under /beta/copilot/agentRegistrations.",
+            "This preview contract is source-verified. Tenant acceptance, registration readback, and Microsoft 365 inventory visibility remain customer validation gates.",
+            "An existing local ID or successful CLI exit is insufficient. An inconclusive readback must remain blocked.",
+            "For retries, review and reuse the existing isolated configuration. Do not rerun initial file creation or erase registration state.",
+            "Do not use the legacy agentRegistry instance endpoint as an interchangeable registration check.",
+            "Sources: T13, T14, T15, T17."
+          ]
+        },
+        {
+          "title": "Read back the exact registration",
+          "paragraphs": [
+            "Use the service-returned registration ID from the isolated CLI state.",
+            "Send this HTTP request through the approved provisioning client. It is not a PowerShell command.",
+            "Compare the returned identity, owner, source, blueprint, and manager fields before accepting registration."
+          ],
+          "code": "GET https://graph.microsoft.com/beta/copilot/agentRegistrations/{AGENT_REGISTRATION_ID}"
+        },
+        {
+          "title": "Grant the observability app role",
+          "paragraphs": [
+            "Use one reviewed grant path. A required-permission declaration alone does not authorize the child identity.",
+            "The preferred single-child path grants the app role directly to the child service principal.",
+            "The resource application ID is 9b975845-388f-4429-889e-eab1ef63949c. It is not the resource service-principal object ID."
+          ],
+          "steps": [
+            "Have an authorized Application Administrator perform the approved app-role assignment. Do not grant directory administration to the runtime.",
+            "Use Microsoft Graph Explorer with the approved admin account and provisioning permissions.",
+            "Retrieve the observability resource service principal using the GET request below.",
+            "Require one matching resource. Select its enabled Agent365.Observability.OtelWrite role with Application in allowedMemberTypes.",
+            "Copy that role's ID and the resource service-principal ID. Do not invent either GUID.",
+            "Submit the POST using the child service-principal object ID, not the child appId.",
+            "In Entra admin center, open Enterprise applications > All applications > the child identity > Permissions.",
+            "Review the resulting application permission grant and administrator audit record.",
+            "Remove elevated provisioning permissions from the operator when the approved setup is complete."
+          ],
+          "code": "GET https://graph.microsoft.com/v1.0/servicePrincipals?$filter=appId eq '9b975845-388f-4429-889e-eab1ef63949c'&$select=id,appId,appRoles\n\nPOST https://graph.microsoft.com/v1.0/servicePrincipals/{CHILD_SERVICE_PRINCIPAL_OBJECT_ID}/appRoleAssignments\nContent-Type: application/json\n\n{\n  \"principalId\": \"{CHILD_SERVICE_PRINCIPAL_OBJECT_ID}\",\n  \"resourceId\": \"{OBSERVABILITY_RESOURCE_SERVICE_PRINCIPAL_OBJECT_ID}\",\n  \"appRoleId\": \"{OTELWRITE_APPLICATION_ROLE_ID}\"\n}",
+          "notes": [
+            "The admin assignment is the application-permission grant. Runtime token issuance must include the role.",
+            "Graph provisioning requires AppRoleAssignment.ReadWrite.All and Application.Read.All, subject to tenant policy and admin consent.",
+            "These permissions belong to the provisioning client. Never assign them to this agent runtime.",
+            "If the permission is unavailable, stop and contact the Agent 365 onboarding owner.",
+            "Sources: T02, T07, T11."
+          ]
+        },
+        {
+          "title": "Alternative: blueprint admin consent and role inheritance",
+          "steps": [
+            "Use this alternative only for a dedicated blueprint containing no unrelated grants.",
+            "Open Entra ID > Agents > Agent blueprints > the dedicated blueprint > API permissions.",
+            "Select Add a permission > APIs my organization uses. Find resource 9b975845-388f-4429-889e-eab1ef63949c.",
+            "Select Application permissions > Agent365.Observability.OtelWrite > Add permissions.",
+            "An authorized administrator selects Grant admin consent for the approved tenant.",
+            "Verify Granted status. Review the blueprint principal's actual application-permission assignment.",
+            "Configure role inheritance for only this resource. Use noScopes for delegated scopes.",
+            "Use the blueprint object ID in the inheritance URL below. Do not use its appId.",
+            "If an inheritance entry exists, review it and use PATCH on its resourceAppId path instead of duplicate POST.",
+            "Confirm the child token receives OtelWrite before any telemetry test."
+          ],
+          "code": "POST https://graph.microsoft.com/v1.0/applications/microsoft.graph.agentIdentityBlueprint/{BLUEPRINT_OBJECT_ID}/inheritablePermissions\nContent-Type: application/json\nOData-Version: 4.0\n\n{\n  \"resourceAppId\": \"9b975845-388f-4429-889e-eab1ef63949c\",\n  \"inheritableScopes\": {\n    \"@odata.type\": \"#microsoft.graph.noScopes\",\n    \"kind\": \"none\"\n  },\n  \"inheritableRoles\": {\n    \"@odata.type\": \"#microsoft.graph.allAllowedRoles\",\n    \"kind\": \"allAllowed\"\n  }\n}",
+          "notes": [
+            "Portal labels can vary during preview. Stop if these controls or permissions are unavailable.",
+            "allAllowedRoles inherits current and future granted roles for this resource. Review changes and keep this blueprint dedicated.",
+            "Do not configure all-resource inheritance or add Graph content permissions.",
+            "Sources: T02, T08."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "SDK runtime: explicit Agent 365 export and evidence",
+      "paragraphs": [
+        "This phase sends metadata to the approved tenant. It requires both --live-model and --export-agent365.",
+        "At least one tenant user needs an assigned Microsoft 365 E7 or Microsoft Agent 365 licence.",
+        "A purchased SKU without user assignment can leave downstream ingestion unavailable.",
+        "SDK export status, HTTP success, and force_flush are not proof of downstream ingestion."
+      ],
+      "sections": [
+        {
+          "title": "Run the approved export",
+          "steps": [
+            "Complete the model-only test and the selected observability grant path first.",
+            "Keep the model environment variables from the dedicated PowerShell session.",
+            "Enter the observability tenant, blueprint appId, and child appId.",
+            "Read the short-lived blueprint secret into memory. Do not use command-line literals or a .env file.",
+            "Run one approved synthetic scenario. Remove the process environment secret in finally.",
+            "Record UTC time, tenant, child appId, trace_id, conversation_id, scenario, and CLI exit status."
+          ],
+          "code": "$env:A365_TENANT_ID = Read-Host 'Agent 365 tenant GUID'\n$env:A365_BLUEPRINT_ID = Read-Host 'Blueprint application ID, not object ID'\n$env:A365_AGENT_ID = Read-Host 'Child application ID, not object ID'\n$secure = Read-Host 'Short-lived blueprint secret value' -AsSecureString\n$pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)\ntry {\n  $env:A365_BLUEPRINT_CLIENT_SECRET = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)\n} finally {\n  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)\n  $secure.Dispose()\n}\ntry {\n  & .\\.venv-runtime\\Scripts\\python.exe -m runtime --live-model --export-agent365 --scenario approval --max-rounds 4\n  if ($LASTEXITCODE -ne 0) { throw 'Runtime failed. Keep ingestion unverified.' }\n} finally {\n  Remove-Item Env:A365_BLUEPRINT_CLIENT_SECRET -ErrorAction SilentlyContinue\n}",
+          "notes": [
+            "Do not enable PowerShell transcription or SDK debug logging around credentials.",
+            "Environment variables contain plaintext in process memory. SecureString does not remove that limitation.",
+            "The runtime removes its inherited secret variable before model credential subprocesses and clears its single-entry token cache on exit.",
+            "Python cannot guarantee zeroization of immutable strings. Use short-lived credentials and terminate the process after testing.",
+            "Blueprint authentication requests api://AzureADTokenExchange/.default with fmi_path equal to the child appId.",
+            "The child exchanges that assertion for api://9b975845-388f-4429-889e-eab1ef63949c/.default.",
+            "The resource token must match tenant, child appId, public-cloud issuer, audience, expiry, and OtelWrite role. scp must be absent.",
+            "The cache holds one child token, refreshes before expiry, and rejects other agent or tenant identifiers.",
+            "The token exchange is protocol-based development code. Tenant issuance remains unverified until this approved live test.",
+            "Sources: T02, T06."
+          ]
+        },
+        {
+          "title": "Check the metadata boundary",
+          "items": [
+            "Manual scopes cover invoke_agent, inference, and execute_tool.",
+            "The pinned SDK uses InferenceOperationType.CHAT with value Chat. The metadata boundary normalizes it to chat.",
+            "Identity fields include gen_ai.agent.id, microsoft.tenant.id, and microsoft.a365.agent.blueprint.id.",
+            "Correlation fields include gen_ai.conversation.id, microsoft.session.id, trace ID, parent span ID, and timestamps.",
+            "Optional usage fields contain token counts. Local decision fields contain a synthetic flag and an allowed boolean.",
+            "The exporter removes input messages, output messages, tool arguments, tool results, user fields, events, links, and error descriptions.",
+            "The resource and instrumentation scope are fixed. Console and Agent 365 export use the same redaction boundary.",
+            "SDK self-telemetry, offline storage, automatic instrumentation, and Azure Monitor export remain disabled."
+          ],
+          "notes": [
+            "The SDK adapter uses the private 1.3.9 _Agent365Exporter transport seam. Any SDK upgrade requires review and integration tests.",
+            "Its only export destination is the exact tenant-and-child observabilityService traces URL.",
+            "No caller-provided telemetry endpoint is accepted.",
+            "Source: T01."
+          ]
+        },
+        {
+          "title": "Perform the negative permission test",
+          "steps": [
+            "Use the dedicated test identity. Do not revoke permissions from a shared blueprint.",
+            "Record the selected grant and its assignment identifier before changing it.",
+            "Remove the child OtelWrite assignment, or remove the corresponding blueprint grant and inherited authorization.",
+            "Check that no alternative direct or inherited grant remains.",
+            "Wait for permission propagation. Start a fresh runtime process without a cached agent token.",
+            "Repeat the explicit export command with a newly entered blueprint secret.",
+            "Expect safe token-claim rejection before model execution, or an authorization failure during export.",
+            "Keep ingestion_verified=false. A local role check does not prove a backend 403.",
+            "If a token still carries OtelWrite, record propagation as pending. Do not claim the negative test passed.",
+            "Restore only the approved assignment. Rerun the positive test and collect separate evidence."
+          ],
+          "notes": [
+            "No permission-bypass flag is provided. Do not remove claim checks to force a backend test.",
+            "A model permission denial is a different test. It does not establish observability permission enforcement.",
+            "Sources: T02, T07."
+          ]
+        },
+        {
+          "title": "Verify downstream trace evidence",
+          "steps": [
+            "Confirm the runtime produced a nonzero trace_id and conversation_id.",
+            "Expect export_attempted_ingestion_unverified. Preserve that status until downstream evidence exists.",
+            "Open the approved Agent 365 or Microsoft Defender agent activity experience using a read-only analyst role.",
+            "For ONB-04, first verify the registry readback, manager linkage, and child object-ID-to-appId mapping from the registration procedure.",
+            "Select the exact tenant and child appId. Filter to the recorded UTC test window.",
+            "Locate the root invoke_agent activity and matching conversation or trace identifiers where the surface exposes them.",
+            "Confirm model and tool child spans where that surface supports them.",
+            "For Sentinel evidence, use the configured connector and repository queries for the actual available schema.",
+            "Capture the downstream record identifier, timestamp, identity match, and query or portal evidence.",
+            "Record absence after the agreed observation window as blocked or inconclusive, not a product pass.",
+            "Record policy enforcement separately. Trace visibility alone does not prove blocking, DLP, prompt shielding, or investigation coverage."
+          ],
+          "notes": [
+            "HTTP 200 can contain per-destination rejection despite partialSuccess.rejectedSpans=0.",
+            "The adapter rejects explicit rejected, unknown, or wholly unrouted responses without printing response bodies.",
+            "An empty successful response still leaves ingestion unverified.",
+            "There is no fabricated generic trace API, table name, or evidence record in this runtime.",
+            "Sources: T02, T03."
+          ]
+        },
+        {
+          "title": "Clean up separate resources",
+          "steps": [
+            "Stop the runtime and remove A365_BLUEPRINT_CLIENT_SECRET from the dedicated shell.",
+            "Delete only the verified test registration using its saved V2 registration ID before removing the dedicated Entra identities.",
+            "Confirm the registration is absent. Keep historical telemetry retention separate from registry deletion.",
+            "Revoke the dedicated blueprint secret. Remove the approved test app-role assignment and inheritance entry.",
+            "Delete only the dedicated child identity through Entra ID > Agents > Agent identities.",
+            "Delete the dedicated blueprint only after confirming no other child identity depends on it.",
+            "Remove temporary operator role activations and provisioning-client consents.",
+            "Remove the dedicated model-user RBAC assignment if it was created for this test.",
+            "Delete dedicated Azure resources only through the separate reviewed infrastructure cleanup procedure.",
+            "Sign out of the dedicated Azure CLI profile. Delete that profile and the isolated venv after evidence approval.",
+            "Apply approved retention to saved metadata and downstream telemetry. Identity deletion does not delete historical telemetry.",
+            "Close the dedicated PowerShell session."
+          ],
+          "code": "Remove-Item Env:A365_BLUEPRINT_CLIENT_SECRET -ErrorAction SilentlyContinue\naz logout\n# Confirm AZURE_CONFIG_DIR identifies only the dedicated test profile.\nRemove-Item Env:AZURE_CONFIG_DIR -ErrorAction SilentlyContinue\nRemove-Item Env:A365_TENANT_ID, Env:A365_BLUEPRINT_ID, Env:A365_AGENT_ID -ErrorAction SilentlyContinue\nRemove-Item Env:MODEL_TENANT_ID, Env:AZURE_OPENAI_ENDPOINT, Env:AZURE_OPENAI_DEPLOYMENT -ErrorAction SilentlyContinue",
+          "notes": [
+            "No broad identity cleanup command is supplied. Do not delete shared blueprints or existing Azure accounts.",
+            "The reviewed V2 cleanup route is DELETE /beta/copilot/agentRegistrations/{AGENT_REGISTRATION_ID}, using the approved provisioning client.",
+            "Agent registrations, published packages, policies, and retained telemetry are separate cleanup surfaces if separately created.",
+            "Sources: T05, T15."
+          ]
+        },
+        {
+          "title": "Verified status and remaining limits",
+          "paragraphs": [
+            "Standard-library tests and installed SDK offline tests passed on Windows ARM64 CPython 3.12.",
+            "The tests use synthetic mocks or console spans. They make no model, tenant, ingestion, provisioning, or deployment calls.",
+            "Live model compatibility, Entra token issuance, tenant consent, backend routing, and downstream evidence still require approved customer validation.",
+            "CLI version and registration-only help were verified locally. No tenant registration, manager-link update, or registration deletion was executed.",
+            "ONB-04 remains blocked without actual registry evidence and matching runtime telemetry, even when Entra objects exist.",
+            "No product enforcement result, certification, or live tenant success is claimed."
+          ]
+        }
+      ]
+    }
+  ]
+}

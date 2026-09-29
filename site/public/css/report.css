@@ -1,0 +1,47 @@
+/* Report styles: used by the in-app preview and the print page. */
+.report { font-family: Aptos, "Segoe UI", system-ui, sans-serif; color: #1b2733; font-size: 13px; line-height: 1.5; background: #fff; }
+.report p { margin: 0 0 8px; }
+.report ul { margin: 4px 0 10px; padding-left: 20px; }
+.report .r-title { border-bottom: 3px solid #18344d; padding-bottom: 14px; margin-bottom: 18px; }
+.report .r-brand { font-size: 11px; color: #546579; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; }
+.report .r-title h1 { font-family: "Aptos Display", Aptos, "Segoe UI", sans-serif; font-size: 26px; color: #18344d; margin: 0 0 4px; }
+.report .r-sub { font-size: 15px; color: #18344d; margin: 0 0 10px; font-weight: 600; }
+.report .r-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px 18px; margin: 0; }
+.report .r-meta div { display: flex; flex-direction: column; }
+.report .r-meta dt { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: #546579; }
+.report .r-meta dd { margin: 0; font-weight: 600; }
+.report .r-h1 { font-family: "Aptos Display", Aptos, "Segoe UI", sans-serif; font-size: 18px; color: #18344d; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #ccd5de; }
+.report .r-h2 { font-size: 15px; color: #18344d; margin: 14px 0 6px; }
+.report .r-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 8px 0 14px; }
+.report .r-kpi { border: 1px solid #ccd5de; background: #f5f8fb; border-radius: 8px; padding: 10px 12px; }
+.report .r-kpi-value { font-size: 22px; font-weight: 700; color: #18344d; }
+.report .r-kpi-label { font-weight: 600; font-size: 12px; }
+.report .r-kpi-detail { font-size: 11.5px; color: #546579; }
+.report .r-table-wrap { overflow-x: auto; margin: 4px 0 12px; }
+.report .r-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.report .r-table th { background: #e8eef5; text-align: left; padding: 6px 7px; border: 1px solid #d3dbe4; font-weight: 700; }
+.report .r-table td { padding: 5px 7px; border: 1px solid #e1e7ee; vertical-align: top; }
+.report .st { display: inline-block; padding: 0 6px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+.report .st-PASS { background: #dff6dd; color: #0b5a0b; }
+.report .st-FAIL { background: #fde7e9; color: #9a0c19; }
+.report .st-BLOCKED { background: #fff4ce; color: #6d4a00; }
+.report .st-NOT_RUN { background: #f0f0f0; color: #555; }
+.report .st-NOT_APPLICABLE { background: #e9e7e5; color: #605e5c; }
+.report .st-IN_PROGRESS { background: #deecf9; color: #0b4a82; }
+.report .r-callout { padding: 8px 12px; border-left: 4px solid #0f6cbd; background: #deecf9; margin: 6px 0 12px; }
+.report .r-callout-warn { border-left-color: #c19c00; background: #fff4ce; }
+
+body.print-page { margin: 0; background: #eef1f5; font-family: "Segoe UI", system-ui, sans-serif; }
+body.print-page .report { max-width: 900px; margin: 70px auto 40px; padding: 40px 48px; box-shadow: 0 2px 16px rgba(0,0,0,.12); }
+.print-bar { position: fixed; top: 0; left: 0; right: 0; display: flex; gap: 12px; align-items: center; padding: 10px 18px; background: #18344d; color: #dbe6f1; font-size: 13px; z-index: 5; }
+.print-bar button { background: #0f6cbd; color: #fff; border: 0; border-radius: 6px; padding: 7px 14px; font-weight: 600; cursor: pointer; }
+
+@media print {
+  @page { margin: 16mm 14mm; }
+  body.print-page { background: #fff; }
+  body.print-page .report { margin: 0; padding: 0; box-shadow: none; max-width: none; }
+  .print-bar { display: none; }
+  .report .r-h1 { break-after: avoid; }
+  .report .r-table tr { break-inside: avoid; }
+  .report .r-kpis { break-inside: avoid; }
+}

@@ -1,0 +1,12 @@
+// Run in the Log Analytics workspace that receives Entra service principal sign-in logs.
+// Verify the identity object ID before use. Do not use a blueprint ID here.
+// This query does not classify every service principal as an agent.
+let AgentServicePrincipalId = "REPLACE_WITH_AGENT_SERVICE_PRINCIPAL_OBJECT_ID";
+let StartUtc = datetime(2026-09-18T00:00:00Z);
+let EndUtc = datetime(2026-09-18T01:00:00Z);
+AADServicePrincipalSignInLogs
+| where TimeGenerated between (StartUtc .. EndUtc)
+| where ServicePrincipalId == AgentServicePrincipalId
+| project TimeGenerated, AppId, ServicePrincipalId, ServicePrincipalName,
+    ResourceDisplayName, ResultType, ResultDescription, IPAddress, CorrelationId
+| order by TimeGenerated asc

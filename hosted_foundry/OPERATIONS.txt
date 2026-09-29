@@ -1,0 +1,39 @@
+HOSTED FOUNDRY SYNTHETIC SAMPLE
+
+This directory is independent of runtime.
+The service uploads only src, not this directory's operator tools.
+Do not start main.py on a workstation. Do not deploy before approval.
+
+Full deployment and evidence instructions:
+  ..\docs\foundry-code-chapters.json
+Verified source register:
+  ..\docs\foundry-code-sources.json
+
+Offline test command from the repository root:
+  python -B -m unittest discover -s tests\foundry -p "test_*.py" -v
+
+Deployment order:
+  1. Select an existing project and approved existing model deployment.
+  2. Review the azd manifest and provision preview.
+  3. Deploy this new unique agent with POC_A365_EXPORT=false.
+  4. Collect its deployed agentIdentityId object ID.
+  5. Preview Grant-ObservabilityRole.ps1. Review the resolved appId.
+  6. Apply only the fixed role with -Apply -Confirm, if not already present.
+  7. Configure A365_TENANT_ID and A365_AGENT_ID (appId, NOT object ID).
+  8. Redeploy with POC_A365_EXPORT=true.
+  9. Authorize one invoke_sample.py request; inspect real ingestion.
+  10. Redeploy off and stop old export-on versions for the negative test.
+  11. Clean up only sample-owned resources. Do not run azd down on the shared project.
+
+The application uses only platform managed/workload credentials. A mismatched
+observability token fails closed. Never enable developer credentials to fix it.
+Only input="synthetic:add", store=false is accepted.
+The local tool adds 2 and 3; an actual model call explains that result.
+
+If POST succeeds but verification fails, the grant script reports grantMade=true
+and verification=incomplete, preserves the assignment ID, and fails. Save its
+receipt. Follow its exact GET command and match all target identifiers. Then
+rerun preview without -Apply after propagation. Do not repeat POST.
+
+No cloud deployment, authentication, model call, server start or telemetry
+transmission was performed during authoring. Live validation is still required.

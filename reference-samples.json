@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-09-18",
+  "samples": [
+    {
+      "name": "foundry-hosted",
+      "repository": "https://github.com/microsoft-foundry/foundry-samples.git",
+      "commit": "e899cd1ac6b372532954d0d4c22c4abc461621db",
+      "path": "samples/python/hosted-agents/agent-framework/responses/01-basic",
+      "purpose": "Official hosted agent with remote source-code build.",
+      "limit": "Add the documented Agent 365 configuration before claiming Agent 365 telemetry."
+    },
+    {
+      "name": "foundry-autopilot",
+      "repository": "https://github.com/microsoft-foundry/foundry-samples.git",
+      "commit": "e899cd1ac6b372532954d0d4c22c4abc461621db",
+      "path": "samples/python/foundry-autopilot-agent",
+      "purpose": "Optional Frontier blueprint and agent-user demonstration.",
+      "limit": "Resolve the documented publish-body differences before execution."
+    },
+    {
+      "name": "sdk-dotnet-s2s",
+      "repository": "https://github.com/microsoft/opentelemetry-distro-dotnet.git",
+      "commit": "8bfccd2c89fc3386e8bbf3828eacbc6f59954e19",
+      "path": "examples/Microsoft.OpenTelemetry.Agent365.S2S.Demo",
+      "purpose": "Official blueprint-derived authentication and synthetic telemetry.",
+      "limit": "This source build contains changes newer than NuGet 1.1.0. It does not execute a model."
+    },
+    {
+      "name": "sdk-reference-agent",
+      "repository": "https://github.com/microsoft/Agent365-Samples.git",
+      "commit": "87dca88dfc73bc386f6a93602f911ef112231976",
+      "path": "python/agent-framework/sample-agent",
+      "purpose": "Official conversational hosting reference.",
+      "limit": "Review inbound authentication and content logging before hosting. Do not expose the unchanged sample."
+    },
+    {
+      "name": "sdk-python-api",
+      "repository": "https://github.com/microsoft/opentelemetry-distro-python.git",
+      "commit": "8c874394b60549c5a6a351a0ef72a64659c9eafa",
+      "path": "samples",
+      "purpose": "Source reference for microsoft-opentelemetry 1.3.9.",
+      "limit": "A source example does not prove service-side ingestion."
+    }
+  ]
+}

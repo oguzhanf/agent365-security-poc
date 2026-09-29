@@ -1,0 +1,275 @@
+{
+  "chapters": [
+    {
+      "title": "Hosted Foundry: Agent 365 sample",
+      "paragraphs": [
+        "Use hosted_foundry for the hosted-code category. This is separate from prompt-agent resource logging and from the local runtime sample.",
+        "The handler runs an actual local synthetic_add tool. It then awaits Agent.run through FoundryChatClient. It returns the model response, the actual invoke trace ID, and the SDK conversation-chain ID. A model error is not replaced with a synthetic success. [H01, H03, H11, H13]",
+        "The tool is a deterministic application call, not a model-selected function call. This proves a local tool execution path, not model tool-selection behavior.",
+        "Only the literal synthetic:add is accepted. No customer content, files, input references, caller instructions, external tools, or prior response history are sent to the model.",
+        "No hosted deployment, Azure authentication, model request, server start, or telemetry transmission was performed while creating these artifacts. Live eligibility and ingestion remain unvalidated."
+      ],
+      "sections": [
+        {
+          "title": "Code and bounded behavior",
+          "paragraphs": [
+            "main.py uses the current three-argument Responses response handler. The service uses Responses protocol 2.0.0 and the python_3_13 source runtime. [H01, H02]",
+            "application.py limits active handlers to two per process. Requests fail fast when busy. Model work has a 45-second deadline. Client cancellation and host shutdown cancel the active task.",
+            "limits.py limits POST bodies to 4096 bytes before JSON parsing. It limits body reception to ten seconds. The accepted input has a 64-byte upper bound. The model token limit is 256. Responses over 2048 characters fail.",
+            "The tool only adds two bounded integers. It has no file, shell, network, or external-tool capability. The model client is created per invocation and closed afterward.",
+            "The opaque Foundry call ID is forwarded with the SDK header constant. It is never treated as an email, user ID, agent appID, or verified human identity.",
+            "Use stateless requests with store=false. Both model storage and durable response storage are disabled in this sample. The host uses an in-memory provider; this is not a durable conversation service."
+          ],
+          "items": [
+            "hosted_foundry\\src\\main.py",
+            "hosted_foundry\\src\\poc_hosted\\application.py",
+            "hosted_foundry\\src\\poc_hosted\\limits.py",
+            "hosted_foundry\\src\\poc_hosted\\identity.py",
+            "hosted_foundry\\src\\poc_hosted\\telemetry.py",
+            "hosted_foundry\\src\\poc_hosted\\settings.py",
+            "hosted_foundry\\src\\requirements.txt",
+            "hosted_foundry\\azure.yaml",
+            "hosted_foundry\\Grant-ObservabilityRole.ps1",
+            "hosted_foundry\\invoke_sample.py",
+            "tests\\foundry"
+          ],
+          "notes": [
+            "The application admission limit is per process, not a platform-wide rate limit. Use the platform's approved ingress, authorization, scaling and spending controls.",
+            "The handler does not implement inbound bearer authentication. The Foundry gateway is the access boundary. Do not expose this host as a public standalone server.",
+            "A caller response contains model text and correlation IDs. Telemetry does not record the model text."
+          ]
+        },
+        {
+          "title": "Local validation and package checks",
+          "paragraphs": [
+            "Run the standard-library tests from the project root. Tests use fake credentials, model calls, SDK providers and exporters. PowerShell tests replace az with a local function. Tests neither open a server nor call Azure.",
+            "Direct runtime pins were checked against published package metadata. The official basic sample has requirements.txt, not pyproject.toml. The separately pinned official uv Responses pyproject was also inspected. [H03, H04, H08, H09, H10]",
+            "These are exact direct dependency pins, not a fully resolved transitive lock file. Resolve and review the complete environment in the approved build network before deployment.",
+            "Do not run main.py on a workstation to prove agent identity. Its hosted configuration and platform call context are required."
+          ],
+          "code": "python -B -m unittest discover -s tests\\foundry -p \"test_*.py\" -v\n\n# Install packages only in the isolated environment.\npy -3.13 -m venv hosted_foundry\\.venv\nhosted_foundry\\.venv\\Scripts\\python.exe -m pip install --only-binary=:all: -r hosted_foundry\\src\\requirements.txt\nhosted_foundry\\.venv\\Scripts\\python.exe -m pip check\nhosted_foundry\\.venv\\Scripts\\python.exe tests\\foundry\\sdk_import_check.py",
+          "notes": [
+            "The import check must not call create_app, main, get_token, Agent.run, or the exporter constructor.",
+            "The hosted sample has no dependency on runtime.",
+            "The complete dependency set resolved on Windows ARM64 with CPython 3.12. The network-blocked SDK import check passed.",
+            "The remote Python 3.13 build and live protocol require validation in the approved Foundry environment."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hosted Foundry: explicit telemetry and identity boundary",
+      "paragraphs": [
+        "POC_A365_EXPORT defaults to false. Export on requires the literal true, an approved tenant GUID, and the deployed agent application's client ID.",
+        "Agent 365 resource logging settings are not a hosted-code kill switch. Explicit hosted SDK configuration can override resource disablement. Disable this application's exporter and stop all older export-on versions when testing opt-out. [H05]",
+        "The hosted platform creates the agent identity during deployment. The user who runs azd is not that identity. [H01, H02]"
+      ],
+      "sections": [
+        {
+          "title": "Metadata-only SDK scopes",
+          "paragraphs": [
+            "telemetry.py installs an explicit OpenTelemetry TracerProvider. It returns a no-op tracer to all instrumentation sources except Agent365Sdk. A pre-existing global provider causes startup failure.",
+            "The sample deliberately does not call use_microsoft_opentelemetry. In 1.3.9, that convenience function can activate environment-selected OTLP export, resource detection, SDK self-telemetry, and automatic instrumentation. The explicit provider avoids that implicit behavior. [H07]",
+            "The isolated adapter constructs the pinned SDK's internal _Agent365Exporter only when export is on. It uses S2S mode, the production cluster, a bounded queue, and enable_durable_delivery=False. This is a version-pinned internal API, not a claim of a stable public exporter factory.",
+            "AgentServer receives configure_observability=None and access_log=None. The injected AppInsights connection string remains available but is not consumed by this sample. Agent Framework instrumentation is explicitly disabled. No logging, metrics, Azure Monitor, OTLP or console exporter is configured. [H12, H13]",
+            "Both MICROSOFT_OTEL_SDKSTATS_DISABLED and APPLICATIONINSIGHTS_STATSBEAT_DISABLED_ALL are set to true before SDK import. Inherited exporter, sampler, resource, domain and credential overrides are rejected.",
+            "InvokeAgentScope wraps the actual request work. ExecuteToolScope wraps the actual arithmetic. A ContextVar associates the tool with the correct request. The root starts with a clean OTel context, so incoming baggage cannot inject user or agent identity.",
+            "No prompt, result, tool argument, file content, raw token, caller identity or arbitrary attribute is supplied to SDK scope methods. Errors are reduced to a fixed message before the SDK can record them. Cancellation is recorded as cancellation."
+          ],
+          "notes": [
+            "Off mode creates no exporter and requests no observability token. The model can still run. It may request its own model-access token through the platform credential.",
+            "The sample does not switch off independently operated Foundry gateway, control-plane, network or platform diagnostics. Zero sample A365 export is not a claim of zero Azure telemetry.",
+            "Do not add automatic HTTP or Agent Framework instrumentation without a separate content-capture review. Keep the internal exporter pin until a reviewed upgrade replaces it.",
+            "The trace ID is the actual root invoke span ID's trace component, not a fabricated proof of ingestion. The conversation ID is the SDK-derived conversation-chain ID, not an invented human identity."
+          ]
+        },
+        {
+          "title": "Platform credential and token consistency",
+          "paragraphs": [
+            "The official hosted sample uses DefaultAzureCredential. This sample excludes environment-secret, Azure CLI, PowerShell, Developer CLI, shared-cache, VS Code, browser and broker credentials. Only managed-identity and workload-identity paths remain. It does not invent a metadata endpoint. [H03, H14]",
+            "On export-on startup, and again when the exporter requests a token, the credential requests api://9b975845-388f-4429-889e-eab1ef63949c/.default.",
+            "The token must have the approved tid, an appid or azp matching A365_AGENT_ID, the observability audience, the Agent365.Observability.OtelWrite role, and a future expiry. If both appid and azp exist, both must match. Delegated scp and user idtyp tokens are rejected.",
+            "Claims are read only from the trusted Azure SDK credential result to detect configuration mismatch. This is not cryptographic verification of an arbitrary JWT. The application never accepts an access token from an incoming request for telemetry.",
+            "If the platform does not make a supported workload or managed identity path available, stop. Mark the test BLOCKED. Obtain a documented platform credential adapter from the platform owner and review identity.py before continuing. Never enable desktop CLI or secret fallback to make the test appear successful."
+          ],
+          "items": [
+            "A365_TENANT_ID: approved tenant ID.",
+            "agentIdentityId / AgentPrincipalId: deployed agent service-principal object ID; used for Graph app-role assignment.",
+            "A365_AGENT_ID / ExpectedAgentAppId: that service principal's appId; used for telemetry attribution and SDK-token consistency checks.",
+            "Agent365Observability resource appId: 9b975845-388f-4429-889e-eab1ef63949c.",
+            "Observability role ID: 8f71190c-00c8-461d-a63b-f74abde9ba52."
+          ],
+          "notes": [
+            "The object ID and application/client ID are not interchangeable.",
+            "A source-verified credential path is not live proof that the tenant or region exposes it. Startup failure is preferable to an incorrectly attributed telemetry export.",
+            "No inbound caller email, object ID or agent-user identity is fabricated. Caller authorization and telemetry agent attribution are separate concerns."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hosted Foundry: phase one deploy with export off",
+      "paragraphs": [
+        "Deploy first with export off. The platform can then create the agent identity. Grant the one observability role afterward. This avoids a circular prerequisite.",
+        "Use an existing approved Foundry project and an existing model deployment. The manifest has no model SKU, model version or model deployment resource. It does not deploy a new model. [H02, H03, H17]",
+        "Use a new, unique agent name. Reusing a name creates a new version of an existing agent and can change an unrelated application. [H15]"
+      ],
+      "sections": [
+        {
+          "title": "Operator gates and help checks",
+          "steps": [
+            "Obtain authorization for the region, project, model, data handling and spending. Confirm Hosted Agent and source-code runtime availability for the selected region.",
+            "Confirm the deployer has the documented Foundry Project Manager permissions. Do not grant tenant-wide permissions to the runtime application.",
+            "Use azd 1.32.0 or later. Use azure.ai.agents 1.0.0-beta.16 or later. Check the extension's own compatibility requirement.",
+            "Use approved azd and Azure CLI sessions in the selected tenant. Authentication is an operator action, not performed by the sample or its tests.",
+            "Read the installed help. If required flags are absent, stop and update through the approved tooling process.",
+            "Run from hosted_foundry. Do not run azd init at the project root, where it could affect other PoC artifacts."
+          ],
+          "code": "Set-Location hosted_foundry\nazd version\nazd extension list\n# Only if the extension is missing:\nazd extension install azure.ai.agents\nazd ai agent init --help\nazd provision --help\nazd deploy --help\nazd ai agent show --help",
+          "notes": [
+            "Command flags were checked against pinned upstream help snapshots. The authoring environment has no azd executable. No binary help execution, provision preview or deployment was performed. [H15, H16]",
+            "The microsoft.foundry extension used in the platform preflight is a meta-package. It includes azure.ai.agents and other Foundry extensions. This sample can install azure.ai.agents directly with its declared dependencies. Do not reinstall it if the bundle already supplied a compatible version.",
+            "At the pinned CLI source revision, microsoft.foundry 1.0.0-beta.3 and azure.ai.agents 1.0.0-beta.16 both require azd >=1.32.0. Their extension.yaml files define these requirements. The sample manifest retains the older upstream minimum; the installed extension's stricter requirement takes precedence. [H03, H15]",
+            "Do not use broad Agent 365 setup-all flows. The only tenant grant in this chapter is the specific observability application role."
+          ]
+        },
+        {
+          "title": "Attach and review the existing project",
+          "paragraphs": [
+            "Replace every angle-bracket value. ProjectId is the complete ARM ID ending in /accounts/<account>/projects/<project>. ProjectEndpoint is its public-cloud data-plane URL ending in /api/projects/<project>.",
+            "The POC_EXISTING_PROJECT_ENDPOINT value is for azd's existing-project service. Do not redeclare FOUNDRY_PROJECT_ENDPOINT or other FOUNDRY_* variables under the agent's env map. The platform supplies those values. [H01]",
+            "The model name is the approved existing deployment alias, not a model catalogue name. Use --model-deployment, not --model. [H15]"
+          ],
+          "code": "$ProjectId = '<existing-project-ARM-ID>'\n$ProjectEndpoint = 'https://<account>.services.ai.azure.com/api/projects/<project>'\n$ModelDeployment = '<approved-existing-model-deployment>'\n$AgentName = '<new-unique-synthetic-agent-name>'\nazd env new '<new-isolated-environment-name>'\nazd env set AZURE_SUBSCRIPTION_ID '<approved-subscription-ID>'\nazd env set AZURE_LOCATION '<existing-project-region>'\nazd env set POC_EXISTING_PROJECT_ENDPOINT $ProjectEndpoint\nazd env set AZURE_AI_MODEL_DEPLOYMENT_NAME $ModelDeployment\nazd env set POC_AGENT_NAME $AgentName\nazd env set POC_A365_EXPORT false\nazd ai agent init --manifest .\\azure.yaml --project-id $ProjectId --model-deployment $ModelDeployment --agent-name $AgentName --deploy-mode code --runtime python_3_13 --entry-point main.py\nGet-Content .\\azure.yaml\nazd provision --preview",
+          "notes": [
+            "Init can rewrite azure.yaml and local environment files. Review the result before provision. Preserve project: src, kind: hosted, Responses 2.0.0, python_3_13, entryPoint: main.py and dependencyResolution: remote_build.",
+            "Confirm the ai-project service still points to the existing endpoint and that no deployments block, new model SKU, external tool, broad permission, or export-on setting was introduced. Stop if the preview proposes changing the existing model or deleting resources.",
+            "The shipped .agentignore excludes local environment files, credentials, caches and built artifacts. The service project is only src; the grant script, probe, docs, tests and local virtual environment are not uploaded.",
+            "A remote build downloads dependencies. It does not require local Docker. Builds and hosted runtime/model usage can incur cost."
+          ]
+        },
+        {
+          "title": "Provision, deploy and collect identity",
+          "steps": [
+            "Approve the preview. Run provision and deploy as separate commands. Do not use an unattended azd up before review.",
+            "Wait for active. Record the new agent name, version, endpoint, deployment timestamp and exact artifact revision.",
+            "Confirm the deployed environment contains POC_A365_EXPORT=false. The app must not need an observability role to start in this phase.",
+            "Open only the new agent application resource in the Azure portal. Select Overview, JSON View and the latest API version. Copy agentIdentityId. [H06]",
+            "Keep agentIdentityId as the service-principal object ID. Resolve its appId with the preview script in phase two. Do not substitute the deployer's CLI client ID."
+          ],
+          "code": "azd provision\nazd deploy synthetic-agent\nazd ai agent show synthetic-agent --output json",
+          "notes": [
+            "Do not claim success from a returned deployment operation alone. The version must become active and a separately authorized synthetic request must complete.",
+            "The platform injects FOUNDRY_PROJECT_ENDPOINT, FOUNDRY_AGENT_NAME, FOUNDRY_AGENT_VERSION, FOUNDRY_AGENT_SESSION_ID and an AppInsights connection string. This app uses the supported hosted values, not workstation copies. [H01]",
+            "If the identity is not yet visible, wait and inspect the deployed application again. Do not create an unrelated application registration as a substitute."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hosted Foundry: phase two narrow grant and opt-in",
+      "paragraphs": [
+        "Use an approved Microsoft Entra administrator session for the grant. The application does not hold Graph permissions. The role must be assigned to the deployed agent object, not to its user, project or deployment CLI. [H06]",
+        "The script defaults to a read-only preview. It checks tenant, deployed principal, resource appId, fixed role, existing assignments and the reviewed agent appId. It does not sign in, grant unrelated permissions, or repeat an existing assignment."
+      ],
+      "sections": [
+        {
+          "title": "Preview and apply exactly one app role",
+          "steps": [
+            "Confirm Agent 365 licensing and tenant consent with the tenant owner. Confirm Agent365Observability exists in this tenant.",
+            "Use the agentIdentityId collected from phase one. Run preview without -Apply.",
+            "Review the returned tenantId, agentIdentityId, A365_AGENT_ID, resourceId and appRoleId against the new deployed agent.",
+            "If alreadyAssigned is true, do not create a duplicate grant. Preserve the existing assignment during cleanup.",
+            "Otherwise run -Apply -Confirm with the reviewed ExpectedAgentAppId. Approve the script's narrow change confirmation.",
+            "Save the returned assignment ID and read-back result in the approved evidence location. After propagation, rerun preview to confirm alreadyAssigned=true."
+          ],
+          "code": "$TenantId = '<approved-tenant-GUID>'\n$AgentPrincipalId = '<deployed-agentIdentityId-object-GUID>'\n.\\Grant-ObservabilityRole.ps1 -TenantId $TenantId -AgentPrincipalId $AgentPrincipalId\n$AgentAppId = '<A365_AGENT_ID-from-reviewed-preview>'\n.\\Grant-ObservabilityRole.ps1 -TenantId $TenantId -AgentPrincipalId $AgentPrincipalId -ExpectedAgentAppId $AgentAppId -Apply -Confirm\n.\\Grant-ObservabilityRole.ps1 -TenantId $TenantId -AgentPrincipalId $AgentPrincipalId -ExpectedAgentAppId $AgentAppId",
+          "notes": [
+            "Role: Agent365.Observability.OtelWrite. Fixed appRoleId: 8f71190c-00c8-461d-a63b-f74abde9ba52. Resource appId: 9b975845-388f-4429-889e-eab1ef63949c.",
+            "The resource is resolved by appId, never by display name alone. The resourceId in the POST body is its tenant-local service-principal object ID.",
+            "The script writes only a short-lived JSON request body containing identifiers under hosted_foundry\\generated during Apply. It removes that file afterward. It never writes tokens or credentials.",
+            "Writes require both -Apply and an explicitly true -Confirm. Omitted confirmation and -Confirm:$false fail before any Azure CLI call, even when ConfirmPreference is None.",
+            "A failed or ambiguous POST is not blindly retried. Rerun preview and inspect the existing assignment. Allow 2-5 minutes for permission propagation. [H06]",
+            "After a successful POST, the script emits the assignment ID with verification=pending. A failed or mismatched read-back emits verification=incomplete and terminates with an error. It never reports that no grant was made after POST success.",
+            "For incomplete verification, save the receipt. Run the exact GET command from the error using readBackUri. Match assignmentId, principalId, resourceId and appRoleId. Then rerun preview without -Apply after propagation. Do not repeat POST. If POST returned no usable assignment ID, inspect the collection URI and match the three target identifiers first."
+          ]
+        },
+        {
+          "title": "Enable export and redeploy",
+          "code": "azd env set A365_TENANT_ID $TenantId\nazd env set A365_AGENT_ID $AgentAppId\nazd env set POC_A365_EXPORT true\nazd deploy synthetic-agent\nazd ai agent show synthetic-agent --output json",
+          "steps": [
+            "Review the new version's environment. It must contain the approved tenant ID and agent application/client ID.",
+            "Confirm the deployed agentIdentityId still maps to the reviewed appId. If the platform gives the new version a different identity, do not broaden access. Recheck the identity, preview its narrow grant, and update configuration deliberately.",
+            "Wait for active. Export-on startup validates the platform observability token before any exporter is installed.",
+            "On identity, audience, role, credential or expiry mismatch, leave the test BLOCKED. Do not bypass the consistency checks.",
+            "Only after startup and tenant approval, run the one synthetic probe and collect ingestion evidence."
+          ],
+          "notes": [
+            "The explicit opt-in controls the application, not the tenant's global logging state.",
+            "A successful startup proves that a trusted SDK credential supplied a matching token at that time. It does not prove Agent 365 accepted a later telemetry batch."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hosted Foundry: evidence, negative test and cleanup",
+      "paragraphs": [
+        "Run live checks only in the approved tenant and project. These steps were not executed during authoring.",
+        "invoke_sample.py is an operator-side caller. Its AzureCliCredential authenticates the user making the request, not the hosted agent. The hosted export path never uses AzureCliCredential.",
+        "A model response is not evidence of telemetry ingestion, Defender detection, Purview enforcement, registry synchronization, certification, or end-to-end security effectiveness."
+      ],
+      "sections": [
+        {
+          "title": "One authorized synthetic invocation",
+          "code": ".\\.venv\\Scripts\\python.exe .\\invoke_sample.py --endpoint $ProjectEndpoint --agent $AgentName --authorize-live-request",
+          "steps": [
+            "Record the start/end time, selected agent version and export setting.",
+            "Confirm the model returns its actual short arithmetic explanation. Preserve the returned trace_id and conversation_id in the approved evidence record.",
+            "In the authorized Agent 365 investigation view, find the same trace ID and conversation ID. Confirm one invoke_agent root and its synthetic_add execute_tool child.",
+            "Confirm agent attribution matches the deployed appId and tenant. Do not infer human attribution from an absent caller field.",
+            "Inspect exported attributes. Prompts, model results, tool arguments/results, authorization headers, emails and file contents must be absent.",
+            "Record the ingestion timestamp and actual observed status. If spans are absent, mark ingestion UNVALIDATED or FAILED and investigate the role, identity, region, endpoint and pipeline. Do not invent a successful query result."
+          ],
+          "notes": [
+            "Tool execution is deterministic. The model explains the locally computed result. The model is not given customer content or a network-capable tool.",
+            "The provider flush result concerns local queue processing only. It is not an Agent 365 ingestion receipt.",
+            "Inspect only approved synthetic evidence. Do not print tokens to troubleshoot claims."
+          ]
+        },
+        {
+          "title": "Negative export-disabled test",
+          "code": "azd env set POC_A365_EXPORT false\nazd deploy synthetic-agent\nazd ai agent show synthetic-agent --output json\n# After confirming only the export-off version receives the test request:\n.\\.venv\\Scripts\\python.exe .\\invoke_sample.py --endpoint $ProjectEndpoint --agent $AgentName --authorize-live-request",
+          "steps": [
+            "Record the export-on version and stop its serving replicas through the approved Foundry version controls. Wait for old batches to drain.",
+            "Deploy export off. Confirm the requested endpoint resolves to the export-off version. Do not assume that changing a local env file updates a running version.",
+            "Send one synthetic request. Confirm actual model execution still succeeds and produces a new correlation ID.",
+            "Verify no exporter construction or observability-token acquisition in the offline negative tests. For live evidence, use approved runtime/network instrumentation to confirm no outbound sample A365 export.",
+            "Check the corresponding Agent 365 time window after the normal ingestion delay. Record no new matching trace, but do not use absence of rows alone as proof of zero export.",
+            "Document any independent platform/AppInsights telemetry separately. It is not controlled by this application's SDK export switch."
+          ],
+          "notes": [
+            "Do not use a365LoggingEnabled=false as the negative test for this hosted SDK. Hosted SDK configuration has a separate scope. [H05]",
+            "Do not remove the role to simulate export off while leaving POC_A365_EXPORT=true. That tests authorization failure, not exporter disablement.",
+            "The unittest off case proves no fake exporter is constructed and no fake credential token is requested. It is not a live network observation."
+          ]
+        },
+        {
+          "title": "Clean up only sample-owned resources",
+          "steps": [
+            "Leave export off and stop every sample-owned export-on version. Remove only this unique sample agent and its versions through Foundry's approved management controls.",
+            "Confirm the saved assignment's principalId, resourceId and appRoleId. Remove its appRoleAssignment ID only if this lab created it. Preserve pre-existing assignments.",
+            "Delete only generated application or hosting resources proven by the deployment record to belong to this unique sample. Keep the existing Foundry account, project, model deployments, shared monitoring resources and unrelated identities.",
+            "Do not run azd down against the shared existing project.",
+            "Remove the local hosted_foundry\\.azure environment, hosted_foundry\\.venv and any operator-created build/evidence files only according to the approved retention policy. These are local artifacts, not proof of cloud cleanup.",
+            "Record cleanup time and any remaining billable resource or retained evidence."
+          ],
+          "code": "# Administrator-only example; use only the assignment ID created by this lab.\n# Inspect the assignment with GET before authorizing DELETE.\n$AssignmentId = '<saved-new-appRoleAssignment-ID>'\n$AssignmentUri = \"https://graph.microsoft.com/v1.0/servicePrincipals/$AgentPrincipalId/appRoleAssignments/$AssignmentId\"\naz rest --method GET --uri $AssignmentUri\n# Only after the exact target is reviewed:\naz rest --method DELETE --uri $AssignmentUri",
+          "notes": [
+            "No broad resource-group deletion, tenant-wide setup, model deployment, resource opt-out, or cleanup action was performed by the authoring agent.",
+            "Passing local tests establishes mocked behavior and artifact consistency. Customer acceptance requires the separately captured deployment, identity, model, ingestion, negative-export and cleanup evidence."
+          ]
+        }
+      ]
+    }
+  ]
+}

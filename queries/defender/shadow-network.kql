@@ -1,0 +1,17 @@
+// Run in Microsoft Defender XDR advanced hunting.
+// A destination match does not prove that a particular agent sent a request.
+let TestDeviceName = "REPLACE_WITH_TEST_DEVICE_NAME";
+let StartUtc = datetime(2026-09-18T00:00:00Z);
+let EndUtc = datetime(2026-09-18T01:00:00Z);
+DeviceNetworkEvents
+| where Timestamp between (StartUtc .. EndUtc)
+| where DeviceName =~ TestDeviceName
+| extend RemoteHost = tostring(parse_url(iff(RemoteUrl startswith "http", RemoteUrl, strcat("https://", RemoteUrl))).Host)
+| where RemoteHost in~ ("openai.com", "anthropic.com", "amazonaws.com")
+    or RemoteHost endswith ".openai.com"
+    or RemoteHost endswith ".anthropic.com"
+    or RemoteHost endswith ".amazonaws.com"
+    or InitiatingProcessFileName in~ ("codex.exe", "claude.exe", "openclaw.exe")
+| project Timestamp, DeviceId, DeviceName, ActionType, RemoteUrl, RemoteIP,
+    RemotePort, InitiatingProcessFileName, InitiatingProcessId, ReportId
+| order by Timestamp asc

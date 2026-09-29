@@ -1,0 +1,6 @@
+// Run in Microsoft Defender advanced hunting after local agent discovery.
+// Configuration discovery does not prove tool execution.
+AgentsInfo
+| where Platform == "LocalAgents"
+| summarize arg_max(Timestamp, Name, Version, LifecycleStatus, RawAgentInfo) by AgentId
+| where LifecycleStatus !in~ ("Deleted", "Uninstalled")

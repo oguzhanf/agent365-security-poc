@@ -1,0 +1,42 @@
+KQL query procedures
+
+Use the Defender queries in Microsoft Defender XDR advanced hunting.
+Use the Sentinel queries in the workspace that receives the named log table.
+The infrastructure template does not connect Entra logs or Defender data.
+
+1. Open the query file.
+2. Replace each REPLACE_WITH value.
+3. Set the UTC start and end times.
+4. Open the table schema in the target query editor.
+5. Confirm that each referenced column exists.
+6. Run the query.
+7. Compare the result with the known test action.
+8. Save the query and result in the protected evidence location.
+
+If a table or column is absent, stop the query test.
+Record BLOCKED and identify the missing connector, permission, or schema.
+Do not remove a missing table to produce a successful empty query.
+
+An empty result does not prove that a policy blocked an action.
+Capture the action result and the policy decision separately.
+Correlate device process IDs with the process start time and device ID.
+A process ID can be reused.
+
+The shadow queries detect candidates.
+Process names, command text, and network destinations can give false matches.
+A process can use another filename, wrapper, proxy, or model endpoint.
+The amazonaws.com filter includes services other than Amazon Bedrock.
+Use a baseline and the approved test process to confirm each match.
+
+These queries do not inspect prompt content.
+They do not create Entra agent identities.
+They do not prove that Agent 365 can control a local process.
+
+Use runtime-behavior.kql with a behavior ID copied from the actual test.
+Review the policy decision separately. A behavior does not always indicate a threat.
+Use governed-tool-activity.kql only for the supported gateway path.
+It does not show direct tool execution outside that gateway.
+
+The sample queries are not scheduled detection rules.
+Create a detection rule only after the analyst approves its scope and baseline.
+Keep the rule disabled until the customer approves execution.

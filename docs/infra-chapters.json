@@ -1,0 +1,258 @@
+{
+  "chapters": [
+    {
+      "title": "Azure lab scope and approval",
+      "paragraphs": [
+        "Use this infrastructure only for an approved, isolated Azure lab. It is not an Agent 365 deployment.",
+        "Run the commands in Windows PowerShell 5.1 from the repository root. Do not run a cloud command until the owner approves the target tenant, subscription, resource group and costs."
+      ],
+      "sections": [
+        {
+          "title": "Identify the deployed resources",
+          "items": [
+            "Create one dedicated Log Analytics workspace. Use 30-day workspace retention and a configurable daily quota. Local authentication is disabled. [A01]",
+            "Create one workspace-based Application Insights component. Local authentication is disabled. [A02]",
+            "Enable Sentinel onboarding only when enableSentinel is true. The default is false. No connector or analytic rule is deployed. [A03]",
+            "Create an OpenAI account and model deployment only when enableAzureOpenAI is true. The default is false. [A04] [A05]",
+            "Create an account-scoped Cognitive Services OpenAI User assignment only when an operator object ID is supplied. [A06]"
+          ],
+          "notes": [
+            "No agent, Entra Agent ID, app registration, tenant security policy or runtime is deployed.",
+            "A local compiler result is not cloud evidence. Azure telemetry is not proof of Agent 365 observability. Runtime integration is separate.",
+            "The OpenAI public endpoint uses Entra authentication, default deny and explicit IPv4 rules. It is not a private endpoint.",
+            "The monitoring endpoints are public and require Entra authentication. The OpenAI IP rules do not protect these endpoints."
+          ]
+        },
+        {
+          "title": "Approve permissions, costs and residency",
+          "steps": [
+            "Obtain owner approval for the exact tenant, subscription, resource group, location, tags and enabled services.",
+            "Approve the maximum expected test volume and the test end time. Assign a person to review Azure costs.",
+            "Verify the selected model name, version, deployment SKU and capacity in the approved region. Verify subscription quota and model access.",
+            "Review the processing location for the selected SKU. Global and Data Zone deployments can process outside the resource region.",
+            "Arrange a period with no concurrent resource changes for deployment and cleanup."
+          ],
+          "items": [
+            "Use an existing operator-established Azure CLI sign-in. The scripts do not log in or change the global subscription.",
+            "Allow group, resource, child-resource, role-assignment and provider-state reads for cloud inventory.",
+            "Allow deployment and target-resource permissions for Azure what-if. Reader alone may not be sufficient.",
+            "Allow writes only for the approved resource types in the dedicated group. Prefer a reviewed custom role. Group-scoped Contributor is a broader option.",
+            "Allow roleAssignments/write only if the optional operator role assignment is required. Contributor alone cannot assign this role.",
+            "Allow exact-resource delete permissions for cleanup. Include roleAssignments/delete if the lab assignment exists.",
+            "Register the required providers separately through an authorized operator. Use Microsoft.OperationalInsights and Microsoft.Insights. Add Microsoft.SecurityInsights or Microsoft.CognitiveServices only for the corresponding optional service."
+          ],
+          "notes": [
+            "The daily workspace quota is not a spending cap. Ingestion can exceed the cap. Some ingestion is not covered by it.",
+            "Sentinel, monitoring data and model use can incur charges. No budget, cost alert or capacity reservation is created.",
+            "Capacity units depend on the model and SKU. A successful compile or what-if does not reserve capacity.",
+            "NoAutoUpgrade does not prevent model retirement. Table retention can differ from workspace retention.",
+            "The operator object ID is a human user object ID in the expected tenant. It is not a client ID, service principal or Entra Agent ID.",
+            "Runtime telemetry needs a separate approved Entra identity and data-plane role. This template does not grant telemetry publishing rights."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Prepare an isolated lab",
+      "sections": [
+        {
+          "title": "Keep customer parameters outside the repository",
+          "steps": [
+            "Create an operator configuration directory outside the repository.",
+            "Copy the parameter example. Stop if the destination file already exists. Do not overwrite approved settings.",
+            "Edit the copied file. Replace every angle-bracket placeholder.",
+            "Keep every parameter from the example. Use JSON values, not strings for booleans or numbers.",
+            "Save the file. Keep the file and removal plans out of source control."
+          ],
+          "code": "$ErrorActionPreference = 'Stop'\n$configDir = Join-Path $env:USERPROFILE 'Agent365-Config'\n$null = New-Item -ItemType Directory -Path $configDir -Force\n$p = Join-Path $configDir 'parameters.json'\nif (Test-Path -LiteralPath $p) { throw 'Parameter file already exists. Review it instead of overwriting it.' }\nCopy-Item -LiteralPath .\\infra\\parameters.example.json -Destination $p\nnotepad $p",
+          "items": [
+            "location: Set the approved canonical Azure region name.",
+            "owner: Set a nonempty owner value. It must exactly match the resource group owner tag.",
+            "workspaceName: Use 4-63 letters, digits or hyphens. Start and end with a letter or digit.",
+            "applicationInsightsName: Use 2-255 letters, digits, dots, underscores or hyphens. Start and end with a letter or digit.",
+            "dailyQuotaGb: Use a positive 32-bit integer. The example uses 1 GB/day.",
+            "enableSentinel and enableAzureOpenAI: Keep false unless the owner approves each service.",
+            "openAIAccountName: When OpenAI is enabled, supply a globally unique account and custom subdomain name. Use 3-63 lowercase letters, digits or hyphens.",
+            "approvedIPv4Ranges: When OpenAI is enabled, supply at least one approved public egress IPv4 address or CIDR. Use a single address or /24 through /32. Do not use 0.0.0.0/0, private addresses, broad ranges or example IPs.",
+            "modelDeploymentName, modelName, modelVersion and modelSku: When OpenAI is enabled, supply the approved exact values. No model or SKU is assumed.",
+            "modelCapacity: Supply positive explicit capacity when OpenAI is enabled. Otherwise keep 0.",
+            "operatorPrincipalObjectId: Leave empty unless the owner approves account-scoped access for the human operator."
+          ],
+          "notes": [
+            "The scripts reject unknown parameters, missing parameters, unresolved placeholders and invalid network inputs.",
+            "The scripts cannot determine whether the customer approved an IP address. Record that approval separately.",
+            "Use scripts\\azure\\.work only for generated compilation and validation scratch. The lifecycle scripts remove their generated snapshots.",
+            "Use the lifecycle scripts rather than direct Bicep deployment. They enforce conditional input and network approval checks."
+          ]
+        },
+        {
+          "title": "Run local checks",
+          "steps": [
+            "Install or provide Windows PowerShell 5.1, Azure CLI and the Bicep compiler through the approved operator process.",
+            "Run the local prerequisite check.",
+            "Validate the edited parameters and compile the template.",
+            "Run the offline infrastructure tests if Python is available.",
+            "Stop on any failure. These checks do not verify Azure access, quota, region availability or provider registration."
+          ],
+          "code": "$ErrorActionPreference = 'Stop'\n$p = Join-Path $env:USERPROFILE 'Agent365-Config\\parameters.json'\n.\\scripts\\azure\\Test-Prerequisites.ps1\n.\\scripts\\azure\\Test-Prerequisites.ps1 -ParametersFile $p\n.\\scripts\\azure\\Invoke-Deployment.ps1 -ParametersFile $p\npython -B -m unittest discover -s tests\\infra -p \"test_*.py\" -v\nif ($LASTEXITCODE -ne 0) { throw 'Offline infrastructure tests failed.' }",
+          "notes": [
+            "These commands do not read subscriptions or run cloud what-if.",
+            "The tests mock Azure lifecycle commands. Only local Bicep compilation uses the real CLI.",
+            "Local validation used Bicep 0.46.1. No pwsh or external testing package is required."
+          ]
+        },
+        {
+          "title": "Create the dedicated resource group after explicit approval",
+          "steps": [
+            "Set the independently approved subscription and tenant GUIDs. Do not derive the expected tenant from the current CLI account.",
+            "Set a new dedicated resource group name. Do not reuse or retag a production group.",
+            "Read the approved location and owner from the validated parameter file.",
+            "Verify the subscription, tenant, enabled state and public Azure cloud.",
+            "Verify that the group does not exist.",
+            "Review the displayed target. Type the exact approval text only after the resource owner approves creation.",
+            "Create the group with both required tags. Check the CLI exit code."
+          ],
+          "code": "$sub = '<approved-subscription-guid>'\n$tenant = '<independently-approved-tenant-guid>'\n$rg = '<new-dedicated-resource-group>'\n$p = Join-Path $env:USERPROFILE 'Agent365-Config\\parameters.json'\n$null = [guid]::ParseExact($sub, 'D')\n$null = [guid]::ParseExact($tenant, 'D')\nif ($sub -eq [guid]::Empty.ToString() -or $tenant -eq [guid]::Empty.ToString()) { throw 'Use nonzero approved GUIDs.' }\n$values = (Get-Content -LiteralPath $p -Raw | ConvertFrom-Json).parameters\n$region = [string]$values.location.value\n$owner = [string]$values.owner.value\n$accountJson = az account show --subscription $sub --query '{id:id,tenantId:tenantId,state:state,environmentName:environmentName}' --output json --only-show-errors\nif ($LASTEXITCODE -ne 0) { throw 'Account verification failed.' }\n$account = $accountJson | ConvertFrom-Json\nif ($account.id -ne $sub -or $account.tenantId -ne $tenant -or $account.state -ne 'Enabled' -or $account.environmentName -ne 'AzureCloud') { throw 'Approved Azure context did not match.' }\n$exists = az group exists --name $rg --subscription $sub --output tsv --only-show-errors\nif ($LASTEXITCODE -ne 0) { throw 'Resource group lookup failed.' }\nif ($exists -ne 'false') { throw 'Use a new dedicated group. Do not reuse this group.' }\nWrite-Host \"Tenant=$tenant Subscription=$sub Group=$rg Region=$region Owner=$owner\"\n$approval = Read-Host \"Type CREATE $rg to approve this Azure write\"\nif ($approval -cne \"CREATE $rg\") { throw 'Creation was not approved.' }\naz group create --name $rg --location $region --subscription $sub --tags 'poc=agent365-security-poc' \"owner=$owner\" --output json --only-show-errors\nif ($LASTEXITCODE -ne 0) { throw 'Resource group creation failed. Inspect Azure before a retry.' }",
+          "notes": [
+            "This procedure writes to Azure. No lifecycle script creates the group for you.",
+            "Required tags are poc=agent365-security-poc and owner=<approved owner>. All expected taggable resources must have matching values.",
+            "Tags are an operational check, not an authorization boundary. Never change unrelated tags to bypass a rejection.",
+            "Keep the group exclusive to this lab. Do not add shared resources or shared child resources."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Plan and apply the Azure lab",
+      "sections": [
+        {
+          "title": "Run the read-only cloud plan",
+          "steps": [
+            "Use the same approved $sub, $tenant, $rg and $p values from preparation.",
+            "Run the script with -Plan.",
+            "Review all what-if changes. Check every resource name, location, tag, IP rule, model value and role assignment.",
+            "Stop if the plan contains an unexpected resource or if any read fails.",
+            "Obtain approval for the displayed changes before apply."
+          ],
+          "code": ".\\scripts\\azure\\Invoke-Deployment.ps1 -ParametersFile $p -SubscriptionId $sub -ExpectedTenantId $tenant -ResourceGroupName $rg -Plan",
+          "notes": [
+            "This step reads Azure and runs Azure Resource Manager what-if. It does not submit a deployment.",
+            "The script validates the expected tenant with az account show --subscription. Each cloud command carries --subscription.",
+            "The script rejects untagged resources, owner mismatches and resources outside its expected ID list. It checks child model tags.",
+            "Sentinel onboarding and role assignments do not support tags. The script accepts only the specific expected scope and properties.",
+            "What-if does not guarantee quota, model availability, billing or successful deployment."
+          ]
+        },
+        {
+          "title": "Apply only with explicit confirmation",
+          "steps": [
+            "Run the command with both -Apply and -Confirm.",
+            "Review the new what-if output. The script repeats the plan.",
+            "Answer Yes to the PowerShell confirmation only for the approved exact group and changes. Answer No to stop.",
+            "Wait for completion. Check the final result and any ownership validation error.",
+            "Keep the approved parameter file unchanged for cleanup."
+          ],
+          "code": ".\\scripts\\azure\\Invoke-Deployment.ps1 -ParametersFile $p -SubscriptionId $sub -ExpectedTenantId $tenant -ResourceGroupName $rg -Apply -Confirm",
+          "notes": [
+            "-Apply without -Confirm is rejected. -Confirm:$false is rejected.",
+            "Add -WhatIf to suppress the Azure write even when -Apply and -Confirm are supplied.",
+            "The script checks resource state again around confirmation. It verifies the frozen template and parameter snapshot before the write.",
+            "A failed read, CLI error or detected change stops the operation. There is no automatic rollback.",
+            "This is an incremental deployment. Changing an optional flag to false does not remove its existing resources."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Remove the minimal lab and retain the group",
+      "paragraphs": [
+        "Cleanup deletes only approved lab resource IDs. It retains the resource group, its tags and deployment history.",
+        "Cleanup does not delete tenant identities or inherited role grants. It does not purge soft-deleted services or export evidence for you."
+      ],
+      "sections": [
+        {
+          "title": "Remove or restore manual extensions before minimal cleanup",
+          "steps": [
+            "Stop runtime traffic and automated changes.",
+            "Identify every connector, custom child resource and manual configuration change added after deployment.",
+            "Preserve required evidence under the approved retention process.",
+            "Obtain separate explicit approval to disable and remove the added connectors and custom children.",
+            "Remove those additions manually through their owning service procedure. Disabling a connector alone does not remove its ARM child resource.",
+            "Restore manually changed lab settings to the approved baseline where required. Do not retag shared resources.",
+            "If a child is shared or cannot be removed safely, stop. Do not weaken the cleanup guard.",
+            "After the manual work, create a fresh minimal-resource removal plan."
+          ],
+          "items": [
+            "Sentinel connectors, analytic rules, automation rules, watchlists, hunting bookmarks and incidents block the minimal cleanup when found. Closed incidents also block it.",
+            "Custom _CL tables, diagnostic settings, data exports, data sources, saved searches, linked services, linked storage and storage insight configurations block it.",
+            "OpenAI private endpoint connections, custom RAI policies, blocklists and commitment plans block it.",
+            "Unrelated resources and direct resource-scoped role assignments also block it."
+          ],
+          "notes": [
+            "The lifecycle scripts do not reverse connector setup or custom security configuration.",
+            "The guard accepts only narrow service-owned children and the declared lab children. It is not a general cleanup tool.",
+            "Sentinel collection reads cover all pages. They run whenever the provider is registered, even when onboarding is absent or the Sentinel flag is false.",
+            "Each inventory read repeats the investigation-state checks. Empty collection results and provider state enter the workspace digest. A failed read stops cleanup.",
+            "Do not delete bookmarks or incidents only to pass the guard. Preserve investigation evidence and obtain separate approval for manual removal. Retain the workspace if that evidence must remain.",
+            "Restore an approved baseline or remove an approved addition manually before a new plan. Do not bypass the guard with tag changes."
+          ]
+        },
+        {
+          "title": "Create and inspect the exact removal plan",
+          "steps": [
+            "Use the original approved parameter file. Keep optional flags true while the corresponding resources exist.",
+            "Run the default removal command to validate local parameters. It makes no Azure call.",
+            "Choose a new plan filename outside the repository.",
+            "Run -Plan with the approved subscription, tenant and group.",
+            "Read the saved JSON and every displayed resource ID. Confirm the exact data and resources that will be deleted.",
+            "Stop if any target is unrelated or if the inventory read fails."
+          ],
+          "code": "$configDir = Join-Path $env:USERPROFILE 'Agent365-Config'\n$p = Join-Path $configDir 'parameters.json'\n.\\scripts\\azure\\Remove-Lab.ps1 -ParametersFile $p\n$removePlan = Join-Path $configDir ('remove-' + [guid]::NewGuid().ToString('N') + '.json')\n.\\scripts\\azure\\Remove-Lab.ps1 -ParametersFile $p -SubscriptionId $sub -ExpectedTenantId $tenant -ResourceGroupName $rg -Plan -PlanFile $removePlan\nGet-Content -LiteralPath $removePlan -Raw",
+          "notes": [
+            "The plan is bound to the subscription, tenant, parameter values and group/resource configuration.",
+            "The plan expires after one hour. The script does not overwrite a plan file.",
+            "Plans contain resource IDs and hashes, not tokens or credentials. Treat the IDs and operator context as customer information.",
+            "Use the exact saved $removePlan path in the next step. Do not create a new plan variable immediately before apply."
+          ]
+        },
+        {
+          "title": "Apply the approved removal plan",
+          "steps": [
+            "Confirm the maintenance window and the absence of concurrent writes.",
+            "Run removal with the same plan file, -Apply and -Confirm.",
+            "Review the displayed exact targets. Answer Yes only if all targets are approved for deletion.",
+            "Wait for all deletion and verification steps.",
+            "Confirm that the expected lab resources are absent and that the resource group remains.",
+            "If any step fails, inspect the remaining resources. Create and review a new plan before a retry."
+          ],
+          "code": ".\\scripts\\azure\\Remove-Lab.ps1 -ParametersFile $p -SubscriptionId $sub -ExpectedTenantId $tenant -ResourceGroupName $rg -PlanFile $removePlan -Apply -Confirm",
+          "notes": [
+            "The script rejects inventory changes after planning. It checks again after confirmation and before each exact-ID deletion.",
+            "A partial cleanup invalidates the original plan. Do not reuse it without a new inventory review.",
+            "The resource group is retained intentionally. Do not replace this procedure with az group delete.",
+            "Resource deletion removes stored telemetry. Preserve required evidence before deletion.",
+            "A separate future group-removal action needs its own owner approval and a fresh check of all group contents.",
+            "Azure does not provide an atomic inventory-and-delete transaction for this set of resources. A concurrent child write can occur after a final read. Enforce exclusive access and a maintenance window.",
+            "No tenant object is removed. Service recovery and soft-delete behavior remain subject to the owning Azure service."
+          ]
+        },
+        {
+          "title": "Handle failures and rollback",
+          "steps": [
+            "Stop after a failed deployment or deletion. Do not hide the error or automatically retry.",
+            "Inspect partial Azure resources and preserve the required evidence.",
+            "For configuration rollback, review and reapply the last approved parameter file.",
+            "For resource removal, use the original parameter values to produce a new exact removal plan.",
+            "Remove or restore manually added connectors and custom children through their approved procedures before minimal cleanup.",
+            "Confirm costs and remaining resources after the lab ends."
+          ],
+          "notes": [
+            "Redeployment does not restore deleted telemetry or model state.",
+            "Changing a flag to false is not rollback or deletion. Existing optional resources can cause the guard to reject the next deployment.",
+            "Do not purge a service or delete shared resources to make a retry succeed."
+          ]
+        }
+      ]
+    }
+  ]
+}

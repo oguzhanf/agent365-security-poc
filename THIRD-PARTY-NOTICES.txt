@@ -1,0 +1,22 @@
+Third-party components
+
+This repository contains original PoC code and references to external components.
+Dependency licences remain with their respective owners.
+Review the package metadata and licence files before distribution.
+
+Document and package tools use the docx and JSZip npm packages and their dependencies.
+The optional runtime uses the packages in requirements-runtime.txt.
+The resolved runtime package list is in requirements-runtime.lock.txt.
+Python, Node.js, Azure CLI, Git, Microsoft Word, and provider tools are separate products.
+
+Official Microsoft samples are not copied into this repository.
+reference-samples.json identifies their source repositories and commit revisions.
+Get-ReferenceSamples.ps1 downloads a selected source to a separate directory.
+Read that repository's licence and dependencies before use.
+
+Microsoft, Azure, Entra, Defender, Purview, Sentinel, Copilot, and Agent 365
+are product names or marks of Microsoft.
+Other product names and marks belong to their respective owners.
+
+This kit is not a Microsoft product support commitment.
+Use the applicable product terms, preview terms, and customer agreement.

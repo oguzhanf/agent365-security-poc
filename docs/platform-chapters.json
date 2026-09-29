@@ -1,0 +1,968 @@
+{
+  "chapters": [
+    {
+      "title": "Copilot Studio built-in integration",
+      "paragraphs": [
+        "These procedures describe planned tests. They do not report a completed tenant deployment. Use only synthetic data and authorized test accounts.",
+        "A proof of concept, or PoC, tests a defined capability. Record deployment, registry visibility, runtime evidence, and enforcement separately.",
+        "Copilot Studio has built-in Agent 365 integration. Identity creation and registration do not require an added SDK. [P02]",
+        "Publication enables the selected user channel. Registry visibility alone does not prove successful publication or runtime telemetry. [P04, P09]"
+      ],
+      "sections": [
+        {
+          "title": "Preflight and ownership",
+          "paragraphs": [
+            "Use a dedicated evaluation tenant. Identify the owner, operator, approver, test users, and evidence reviewer before changes.",
+            "Agent 365 is licensed per user. One qualifying license enables the service; it does not license every participant. [P01]",
+            "Prefer AI Administrator for supported governance actions. A reader role does not authorize installation or consent. [P03]"
+          ],
+          "items": [
+            "Confirm Agent 365 or eligible Microsoft 365 E7 entitlement for the planned users and features.",
+            "Confirm a standalone Copilot Studio subscription, maker access, publishing capacity, and the chosen environment.",
+            "Do not use a free trial for publication. Its test-panel capability does not establish publishing entitlement. [P05]",
+            "Do not substitute the Teams-included plan without checking its reduced capabilities. It does not provide generative orchestration. [P05]",
+            "Use two licensed test identities. Assign the agent only to the approved test audience.",
+            "Define an evidence window and a cost limit. Record local time, UTC, tenant ID, environment ID, and agent ID.",
+            "Exclude customer documents, production connectors, real personal data, and production secrets."
+          ]
+        },
+        {
+          "title": "Create, register, and publish",
+          "paragraphs": [
+            "Use the standard-harness quickstart. Check the current portal labels before the customer demonstration. [P06]",
+            "Use https://copilotstudio.microsoft.com and https://admin.microsoft.com. The current registry path starts with Agents, not Agent 365. [P04]"
+          ],
+          "steps": [
+            "Open Copilot Studio. Select the approved Power Platform environment.",
+            "On Home, turn off New experience if present. Start the standard agent creation flow.",
+            "Name the agent A365 Studio Guide. Set instructions to explain Copilot Studio using public documentation.",
+            "Open Overview > Knowledge. Add the official public Copilot Studio documentation used by the quickstart.",
+            "Add fixtures\\public-procedure.txt as a synthetic knowledge file. Wait until the source is ready.",
+            "Open Test your agent. Ask: How can I add a public knowledge source?",
+            "Open Microsoft 365 admin center > Agents > All Agents > Registry. Filter Platform to Copilot Studio.",
+            "Find the draft agent. Record its ID, owner, description, and deployment state before publication.",
+            "Open Settings > Security > Authentication. Select Authenticate with Microsoft, then Save.",
+            "Select Publish > Publish. Record the publication result and time.",
+            "Open the Teams and Microsoft 365 Copilot channel. Select Make agent available in Microsoft 365 Copilot if required.",
+            "Select Add channel. Select See agent in Teams > Add for the maker test.",
+            "Start a new conversation. Ask: Use the public procedure. State the test approval code.",
+            "Confirm the answer contains POC-APPROVAL-6142. Use Start over when testing an updated publication.",
+            "For distribution, select Availability options > Show to everyone in my org > Submit for admin approval.",
+            "Have the administrator review the request and install for the approved test group only. Verify the effective audience.",
+            "Change the agent description to include A365-STUDIO-01. Check the registry metadata after synchronization."
+          ],
+          "notes": [
+            "The organization submission label does not replace the administrator's audience decision. Verify the final deployment scope. [P08, P18]",
+            "Teams and Microsoft 365 channels require Authenticate with Microsoft in the documented configuration. [P07]",
+            "Identity and registry integration start before publication. Do not wait for Teams installation to assess draft registration. [P02, P04]"
+          ]
+        },
+        {
+          "title": "Positive and negative demonstrations",
+          "table": {
+            "headers": ["Phase", "Action", "Expected result", "Required evidence"],
+            "rows": [
+              [
+                "Positive",
+                "Use the assigned account in Teams. Ask: Use the public procedure. State the test approval code.",
+                "The authenticated agent returns POC-APPROVAL-6142. The registry identifies the same agent and approved channel.",
+                "Conversation time, synthetic response, publication state, agent ID, and assigned audience."
+              ],
+              [
+                "Negative authentication",
+                "Open the Teams access link in a signed-out browser. Do not complete sign-in.",
+                "Authentication is required. No authenticated agent conversation occurs.",
+                "Sign-in requirement and test time. Do not record credentials or session tokens."
+              ],
+              [
+                "Negative audience",
+                "Use the excluded test account. Verify no direct share, maker access, or other assignment grants access first.",
+                "The excluded account cannot use the scoped deployment. Investigate any alternate grant before judging the test.",
+                "Effective assignments and the actual denial. A missing catalogue tile alone does not prove authorization enforcement."
+              ],
+              [
+                "Telemetry",
+                "Find the matching authenticated invocation in an available Agent 365 telemetry surface.",
+                "A matching record proves collection only for that invocation. Missing telemetry remains an open test result.",
+                "Agent identity, timestamp, supported telemetry fields, and any applicable redaction."
+              ]
+            ]
+          }
+        },
+        {
+          "title": "Telemetry limits and stop conditions",
+          "paragraphs": [
+            "Studio automatically emits telemetry, but only authenticated sessions qualify. Multitenant agents are excluded. [P09]",
+            "Agent names longer than 42 characters are not logged. Inputs and outputs can be truncated or redacted. [P09]",
+            "The generic Activity support list differs from the Studio observability guide. Confirm the actual tenant surface before execution. [P09, P10]"
+          ],
+          "items": [
+            "Stop publication if licensing, capacity, authentication, approval, or audience scope is unresolved.",
+            "Stop if a knowledge source includes customer content or requires an unapproved permission.",
+            "Do not use an anonymous demo website as the Agent 365 telemetry acceptance path.",
+            "Record an unavailable Activity view as a capability gap. Do not replace it with a fabricated telemetry result.",
+            "Record every test as passed, failed, blocked, or not run. Separate documentation expectations from observed results."
+          ]
+        },
+        {
+          "title": "Rollback and verification",
+          "steps": [
+            "Save redacted evidence before changing the agent.",
+            "Remove the test audience deployment through the supported administrative action.",
+            "Remove the Teams test installation and direct shares created for this test.",
+            "Remove test knowledge sources and connections. Delete the disposable Studio agent only after owner approval.",
+            "Restore any changed external-publisher or audience settings to their recorded values.",
+            "Verify the former test user cannot start a new agent session.",
+            "Record remaining registry or audit history. Deletion does not promise immediate removal of retained evidence."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Foundry hosted agents and Agent 365 telemetry",
+      "paragraphs": [
+        "A hosted agent runs custom code in Foundry. A prompt agent uses a different configuration and telemetry path. [P12]",
+        "Normal publication, Agent 365 registry visibility, and Agent 365 runtime telemetry are separate results.",
+        "Published Foundry agents enter the registry. Do not apply Studio draft-visibility expectations to an unpublished hosted agent. [P12]",
+        "Use hosted_foundry for the required ONB-02 and ONB-09 cases. Its detailed deployment chapters follow this platform chapter.",
+        "Complete its export-off deployment, then use the normal publication steps below. Complete its export-on phase for ONB-09.",
+        "The official basic sample below is an optional hosting reference. Do not deploy both implementations for the same test agent.",
+        "This chapter uses normal publication. Autopilot blueprint publication is separately gated in the Frontier chapter."
+      ],
+      "sections": [
+        {
+          "title": "Preflight roles, tools, and cost",
+          "table": {
+            "headers": ["Operation", "Required check"],
+            "rows": [
+              ["New project provisioning", "Confirm Owner at the dedicated resource-group scope and approved Azure subscription."],
+              ["Existing project deployment", "Confirm Foundry Project Manager at the project scope."],
+              ["Normal publication", "Confirm Foundry User at project scope and Azure Bot Service Contributor Role for Bot Service operations."],
+              ["Tenant distribution", "Use an authorized agent administrator. Approve the selected audience and required permissions."],
+              ["Agent 365 telemetry", "Confirm licensing, consent, SDK configuration, and the observability app-role assignment."],
+              ["Capacity", "Confirm a supported region, model availability, quota, and a fixed cost limit."],
+              ["Workstation", "Use Azure Developer CLI, called azd, version 1.32.0 or later for the selected extension versions."]
+            ]
+          },
+          "notes": [
+            "Foundry roles were renamed from Azure AI roles. Verify the role identifier and scope, not only its display name. [P11]",
+            "Foundry roles do not supply Azure Bot Service permissions. Confirm Microsoft.BotService registration before publication. [P13]",
+            "The code-deployment path builds remotely. It does not require local Docker. Other image-based paths can have different requirements. [P11]",
+            "The microsoft.foundry bundle includes azure.ai.agents. Do not install a duplicate extension. Follow the hosted-code version checks. [H15, H16]",
+            "Portal publication requires public network access on the project. Do not weaken a private-network policy to complete this demonstration. [P13]"
+          ]
+        },
+        {
+          "title": "Optional basic sample and normal publication",
+          "paragraphs": [
+            "Run commands only against the approved evaluation subscription and project. Read each selected resource before confirming it.",
+            "Use official repository https://github.com/microsoft-foundry/foundry-samples.git at commit e899cd1ac6b372532954d0d4c22c4abc461621db.",
+            "The commit timestamp is 2026-09-17T15:39:41Z. Source existence was checked; deployment was not verified.",
+            "The reference-samples.json entry is foundry-hosted. Its manifest is samples\\python\\hosted-agents\\agent-framework\\responses\\01-basic\\azure.yaml.",
+            "Record the pinned revision and generated deployment files before provisioning. The deployment procedure follows P11."
+          ],
+          "steps": [
+            "Check azd version. Confirm the approved tenant, subscription, resource group, project, region, model, and budget.",
+            "Create an empty working directory outside the repository. Install the extension and authenticate with the commands below.",
+            "Run azd ai agent init with the pinned sample manifest below and --deploy-mode code.",
+            "Select the approved project and model during initialization. Enter the generated agent directory.",
+            "Inspect azure.yaml and generated infrastructure. Stop if the selected resources or permissions exceed the approved scope.",
+            "Run azd provision. Record created resource IDs without exporting secrets.",
+            "Run azd ai agent run for the local development check. Stop it after the synthetic test.",
+            "Run azd deploy. Wait for a successful hosted deployment before continuing.",
+            "Run azd ai agent invoke with the synthetic prompt below. Record the response, version, endpoint, and time.",
+            "In Foundry, open Details > Agent configuration > Active version > Edit. Select the tested version.",
+            "Verify Foundry User, Azure Bot Service Contributor Role, and Microsoft.BotService registration for publication.",
+            "Select Publish > Teams and Microsoft 365 Copilot. Complete metadata, then Next: Publish options > Direct publish.",
+            "Select Just you for the first test. Select Publish and test with the authorized project user.",
+            "For organizational distribution, choose People in your organization. Have the administrator approve the request and verify its effective audience.",
+            "Open Microsoft 365 admin center > Agents > All Agents > Registry. Match the published entry to the hosted agent."
+          ],
+          "code": "azd version\nazd ext install microsoft.foundry\nif ($LASTEXITCODE -ne 0) { throw 'Extension installation failed.' }\nazd auth login\nif ($LASTEXITCODE -ne 0) { throw 'Authentication failed.' }\nazd ai agent init -m 'https://github.com/microsoft-foundry/foundry-samples/blob/e899cd1ac6b372532954d0d4c22c4abc461621db/samples/python/hosted-agents/agent-framework/responses/01-basic/azure.yaml' --deploy-mode code\nif ($LASTEXITCODE -ne 0) { throw 'Initialization failed.' }\n\n# Enter the generated agent directory before the next commands.\nazd provision\nif ($LASTEXITCODE -ne 0) { throw 'Provisioning failed.' }\nazd ai agent run\n# Stop the local run after its test. Then deploy the hosted agent.\nazd deploy\nif ($LASTEXITCODE -ne 0) { throw 'Hosted deployment failed.' }\nazd ai agent invoke 'Return A365-FOUNDRY-01. Explain what a synthetic test is in one sentence.'\nif ($LASTEXITCODE -ne 0) { throw 'Hosted invocation failed.' }",
+          "notes": [
+            "The basic sample uses Agent Framework, FoundryChatClient, DefaultAzureCredential, and ResponsesHostServer. It is not automatic hosted Agent 365 instrumentation. [P11, P12]",
+            "Just you uses project role-based access control, or RBAC. Sharing its link does not grant project invocation rights. [P13]",
+            "Stop the portal path if public network access is disabled. Use a separately approved private-network publication procedure instead. [P13]"
+          ]
+        },
+        {
+          "title": "Enable actual Agent 365 hosted telemetry",
+          "paragraphs": [
+            "Application Insights is an Azure telemetry service. Its traces do not establish Agent 365 telemetry collection. [P12, P14]",
+            "Use the hosted_foundry sample and the hosted-code chapter for explicit SDK instrumentation and platform authentication.",
+            "Do not mark this phase complete until an actual Agent 365 record matches the test invocation."
+          ],
+          "steps": [
+            "Record the hosted agent version and its current Application Insights tracing configuration.",
+            "Read hosted_foundry and its pinned dependency file. Use the hosted-code chapter for deployment.",
+            "Configure the hosted exporter and platform credential as specified in that chapter.",
+            "Confirm Agent 365 licensing and approved tenant consent for this test.",
+            "Open Azure portal > agent application resource > Overview > JSON View. Record agentIdentityId.",
+            "Locate the tenant's Agent365Observability service principal. Verify its identity before assigning permissions.",
+            "Use the permission procedure to grant Agent365.Observability.OtelWrite to the hosted agent identity.",
+            "Read back the assignment. Record principal, resource, app role, scope, approver, and change time.",
+            "Allow two to five minutes for propagation. Redeploy the instrumented hosted version when required.",
+            "Invoke synthetic:add through the included sample's stateless request procedure. Record the returned trace and conversation IDs.",
+            "Find the matching Agent 365 telemetry record. Preserve the successful runtime response separately.",
+            "If collection fails, record the exact failure stage. Do not treat a registry entry as substitute evidence."
+          ],
+          "notes": [
+            "The role name is Agent365.Observability.OtelWrite. Follow the documented assignment procedure rather than inventing an API or role ID. [P15]",
+            "The included hosted sample does not export to Application Insights. Platform diagnostics can exist independently.",
+            "a365LoggingEnabled controls prompt-agent collection across the resource. It has no per-prompt-agent override. [P14]",
+            "Hosted SDK configuration can override resource-level logging disablement. That setting is not a reliable hosted-agent off switch. [P14]"
+          ]
+        },
+        {
+          "title": "Acceptance evidence and negative checks",
+          "table": {
+            "headers": ["Test", "Expected result", "Evidence"],
+            "rows": [
+              ["Positive hosting", "The deployed version answers the synthetic prompt.", "Deployment result, active version, endpoint, invocation time, and response."],
+              ["Positive publication", "The intended user can access the approved channel. The published agent appears in Registry.", "Channel result, tenant approval, effective audience, and matching agent identity."],
+              ["Positive telemetry", "Agent 365 receives the instrumented hosted invocation.", "Agent 365 record, identity, timestamp, and verified observability app-role assignment."],
+              ["Negative RBAC", "A test identity without project rights cannot invoke the Just you publication.", "Direct invocation denial and verified absence of inherited or alternative access."],
+              ["Negative inference", "Application Insights traces alone do not satisfy the Agent 365 evidence requirement.", "Separate result fields for Azure tracing and Agent 365 collection."]
+            ]
+          },
+          "items": [
+            "Stop on missing quota, unsupported region, role mismatch, consent failure, or unapproved public-network changes.",
+            "Stop if the generated template introduces unapproved services or external connections.",
+            "Do not grant a broad directory role merely to bypass a permission error.",
+            "Treat missing Agent 365 records as blocked or failed after the agreed observation window."
+          ]
+        },
+        {
+          "title": "Rollback and verification",
+          "steps": [
+            "Save redacted hosting, publication, identity, and telemetry evidence.",
+            "Remove the test publication or audience through the supported channel and administrative controls.",
+            "Disable the hosted SDK exporter in the test deployment or stop the test workload.",
+            "Remove only the observability assignment added for this disposable identity, after approval.",
+            "Verify a new invocation does not produce new Agent 365 exports. Retained historical records can remain.",
+            "Remove test Bot Service and Azure resources only when the deployment inventory proves exclusive PoC ownership.",
+            "Restore any changed role assignments and resource settings. Confirm no shared resource was removed.",
+            "Check vendor and Azure billing separately. Publication removal does not stop every hosted resource."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Partner SaaS agents and a licensed Zendesk test",
+      "paragraphs": [
+        "Software as a service, or SaaS, runs in a provider's environment. Its account permissions remain a separate boundary.",
+        "Choose a partner already licensed for the evaluation. A catalogue listing does not provide a free vendor subscription. [P16]",
+        "Microsoft distinguishes agents, AI teammates, and agent factories. Coming-soon and Frontier restrictions still apply. [P16]",
+        "Zendesk is listed as a Frontier AI teammate. Its provider guide describes Teams installation and login instead. Resolve this difference first. [P16, P19]"
+      ],
+      "sections": [
+        {
+          "title": "Preflight and catalogue checks",
+          "items": [
+            "Assign AI Administrator for supported installation and governance actions. Arrange an authorized consent approver. [P03]",
+            "Confirm Microsoft 365 and Agent 365 entitlements for the selected offering and test users.",
+            "Confirm vendor licensing, regional availability, provider account roles, support terms, and a synthetic test workspace.",
+            "For Zendesk, confirm Suite Team, Growth, Professional, Enterprise, or Enterprise Plus eligibility. [P19]",
+            "Alternatively, confirm Zendesk Support Team, Professional, or Enterprise eligibility. Verify the actual purchased plan. [P19]",
+            "Create a licensed support-agent test account and a distinct end-user test account. Do not use real tickets.",
+            "Confirm the exact publisher, catalogue entry, application identity, and vendor onboarding procedure during rehearsal.",
+            "Do not infer readiness from Registered or Observable checkmarks when a listing says Coming soon. [P16]",
+            "Apply the Frontier chapter gates if the selected offering requires AI-teammate activation or instance creation."
+          ]
+        },
+        {
+          "title": "Common administrator deployment",
+          "paragraphs": [
+            "Use this path for a catalogue offering that exposes the documented Install flow. Do not invent an instance-creation step. [P18]",
+            "Record the original external-publisher setting. A tenant-wide setting change can affect more than the test offering. [P17]"
+          ],
+          "steps": [
+            "Open Microsoft 365 admin center > Agents > Settings > Allowed agent types.",
+            "Verify Allow apps and agents built by external publishers. Obtain approval before changing this setting.",
+            "Open Agents > All agents > Registry. Filter Status to Available.",
+            "Locate the entitled offering. Confirm publisher, product name, identity, and availability notes.",
+            "Review Details, Permissions, Data & tools, and Certification where present.",
+            "Compare every requested permission with the approved test purpose. Stop on an unexplained permission.",
+            "Select Install. In Deploy agent to selected users, select only the approved test group.",
+            "Select Review permissions > Grant admin consent. Have the authorized approver review the request.",
+            "Select Accept > Next after approval. Record consent without capturing tokens.",
+            "Select Review & finish > Finish deployment. Record the effective audience and result.",
+            "Complete only the matching provider onboarding procedure. Use the provider's synthetic test account.",
+            "Verify the registry entry and user access separately. Record any additional template or instance requirements."
+          ],
+          "notes": [
+            "Registry installation is not proof that the vendor account is connected.",
+            "Vendor OAuth authorization is not proof of Agent 365 runtime telemetry. Verify each claimed evidence surface separately."
+          ]
+        },
+        {
+          "title": "Zendesk Support Assistant licensed path",
+          "paragraphs": [
+            "Use a dedicated Zendesk test subdomain. Replace every placeholder with an operator-recorded test value.",
+            "Before execution, reconcile the Microsoft AI-teammate listing with the provider's Add and login flow. [P16, P19]",
+            "If they identify different offerings, stop. Do not combine them into one assumed deployment."
+          ],
+          "steps": [
+            "Confirm the chosen Zendesk plan and the exact Support Assistant entry during rehearsal.",
+            "Create synthetic tickets for two separate end users. Use subjects A365-ZD-OWN and A365-ZD-OTHER.",
+            "Record ticket IDs and requester ownership. Keep all descriptions free of real personal data.",
+            "Confirm the support-agent account can access both tickets in Zendesk. Confirm each end user sees only its permitted tickets.",
+            "In Teams, open Apps. Search Zendesk Support Assistant and select Add for the approved test account.",
+            "Open the app. Enter /login <test-subdomain> using the approved test subdomain.",
+            "Select Connect to Zendesk. Authorize on Zendesk's page with the intended test account.",
+            "Enter /login without a subdomain. Confirm the connected account and workspace.",
+            "As the support-agent account, ask: Show me ticket #<synthetic-ticket-id>. Record the synthetic answer.",
+            "In a separate end-user session, connect that user's account. Ask for its own synthetic ticket.",
+            "Ask the same end-user session for the other user's synthetic ticket. Record the actual denial or non-disclosure.",
+            "Capture the registry identity, approved audience, connected-account role, and both test outcomes. Exclude OAuth secrets.",
+            "Enter /logout <test-subdomain> in each connected test session. Verify the vendor connection is no longer usable."
+          ],
+          "notes": [
+            "The provider applies the signed-in Zendesk account's permissions. End users and support agents have different ticket access. [P19]",
+            "Do not test delete or merge operations. Their additional restrictions are not needed for this read-only demonstration.",
+            "A refusal caused only by agent wording does not prove authorization enforcement. Compare the account's actual provider permissions."
+          ]
+        },
+        {
+          "title": "Acceptance, stop conditions, and rollback",
+          "table": {
+            "headers": ["Result", "Required evidence"],
+            "rows": [
+              ["Positive", "The support-agent test account retrieves a permitted synthetic ticket through the installed assistant."],
+              ["Negative", "The end-user test account does not receive another user's protected ticket content."],
+              ["Scope", "The installed identity and effective audience match the approved catalogue entry."],
+              ["Connection removal", "After logout, a new request requires connection or cannot access the previously connected account."],
+              ["Telemetry claim", "Any claimed Agent 365 runtime record identifies the actual test operation. Registry visibility alone is insufficient."]
+            ]
+          },
+          "items": [
+            "Stop if the offering is unavailable, unlicensed, coming soon, or subject to unmet Frontier requirements.",
+            "Stop if the vendor account can see real support data.",
+            "Stop on unexplained consent, catalogue mismatch, or unexpected access by the excluded test account.",
+            "After evidence capture, revoke only test OAuth grants and remove the scoped installation as supported.",
+            "Restore changed tenant settings. Retire synthetic tickets and test accounts under the provider's approved procedure.",
+            "Check vendor-side sessions, subscriptions, and scheduled work separately. Microsoft removal is not a global vendor rollback."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Amazon Bedrock readiness and required Connected platforms sync",
+      "paragraphs": [
+        "This procedure uses Amazon Bedrock Agents, now called Agents Classic. New-customer access closed on July 30, 2026. [P35]",
+        "Existing Agents Classic customers can continue. An existing AWS account alone does not establish eligibility. [P35]",
+        "Verify the specific account's Agents Classic eligibility and supported region before provisioning.",
+        "Do not substitute Bedrock AgentCore silently. Its APIs, permissions, deployment procedure, and acceptance evidence require separate approval.",
+        "Connected platforms imports external agent inventory and exposes management actions supported by the provider. [P20]",
+        "Registry sync remains a preview integration mechanism. It is not runtime telemetry, Teams hosting, or SDK instrumentation. [P02]",
+        "Required Bedrock coverage includes provider readiness, the provider authorization boundary, and actual Agent 365 registry synchronization.",
+        "ONB-05 tests provider readiness and authorization. ONB-10 requires actual registry synchronization, despite its preview status.",
+        "Approve the preview path separately. Missing rollout, eligibility, or approval keeps full requested PoC acceptance BLOCKED.",
+        "A provider-readiness pass does not prove registry synchronization or satisfy the connected-platform category.",
+        "Connected platforms differs from Researcher's Connected Agents feature. Do not use that feature for this procedure.",
+        "Use manual Sync agents. Scheduled synchronization is documented as a future release, not a current PoC dependency. [P20]"
+      ],
+      "sections": [
+        {
+          "title": "Preflight and credential warning",
+          "paragraphs": [
+            "Use an authorized AWS test account that qualifies for Agents Classic. Isolate the test agent from customer workloads.",
+            "Stop if existing Agents Classic customer eligibility is unconfirmed. A new test account does not automatically inherit access. [P35]",
+            "For provider readiness, confirm AWS billing, model access, a test Bedrock service role, and approved positive and negative test identities.",
+            "For required sync, confirm Agent 365 eligibility, separate preview approval, and an authorized Microsoft agent administrator. [P03, P20]",
+            "Confirm Connected platforms access before preparing connector credentials. Provider readiness does not require creating a connector key.",
+            "The documented connector credential is not read-only. It includes invocation permissions and bedrock:DeleteAgent. [P20]",
+            "Obtain explicit approval for that authority. If approval is refused, stop the connector path and record the gap.",
+            "Scope IAM permissions using AWS-supported resource and condition constraints. Do not add a blanket administrator policy.",
+            "Keep access keys in the approved secret store. Do not place keys in JSON, screenshots, shell history, or evidence."
+          ],
+          "table": {
+            "headers": ["Scope", "Exact documented permission names"],
+            "rows": [
+              [
+                "Bedrock inventory",
+                "bedrock:ListAgents; bedrock:GetAgent; bedrock:ListAgentAliases; bedrock:GetAgentAlias; bedrock:ListAgentVersions; bedrock:GetAgentVersion"
+              ],
+              [
+                "Bedrock invocation and deletion",
+                "bedrock:InvokeModel; bedrock:InvokeAgent; bedrock:InvokeInlineAgent; bedrock:DeleteAgent"
+              ],
+              [
+                "Optional AgentCore inventory",
+                "bedrock-agentcore:ListHarnesses; bedrock-agentcore:ListAgentRuntimes; bedrock-agentcore:ListGateways; bedrock-agentcore:ListGatewayTargets"
+              ],
+              [
+                "Optional AgentCore reads",
+                "bedrock-agentcore:GetHarness; bedrock-agentcore:GetAgentRuntime; bedrock-agentcore:GetGateway; bedrock-agentcore:GetGatewayTarget; bedrock-agentcore:GetMemory"
+              ],
+              [
+                "Optional AgentCore deletion",
+                "bedrock-agentcore:DeleteHarness; bedrock-agentcore:DeleteAgentRuntime; bedrock-agentcore:DeleteGateway; bedrock-agentcore:DeleteGatewayTarget; bedrock-agentcore:DeleteMemory; bedrock-agentcore:DeleteWorkloadIdentity; bedrock-agentcore:DeleteAgentRuntimeEndpoint"
+              ]
+            ]
+          },
+          "notes": [
+            "These are permission names, not a ready-to-apply IAM policy. Resource scoping requires separate AWS review.",
+            "The primary path tests a Bedrock agent. Do not add AgentCore permissions unless that additional scope is expressly approved.",
+            "Do not claim a reduced read-only policy meets the documented connection requirements without a separately verified result."
+          ]
+        },
+        {
+          "title": "Required provider readiness and authorization boundary",
+          "steps": [
+            "Verify existing Agents Classic customer eligibility and supported regional availability. Record the approval before creating resources.",
+            "Record the approved AWS account, region, administrator, test identities, and cost limit.",
+            "Open AWS console > Amazon Bedrock > Agents > Create Agent. Name it A365 Bedrock Inventory.",
+            "Select Create. In Agent builder, select the approved service role and an accessible model.",
+            "Set instructions: Explain synthetic test procedures. Do not request private data or perform external actions.",
+            "Leave action groups and knowledge bases absent for this minimal test. Select Save > Prepare.",
+            "Test in AWS: Return A365-BEDROCK-01 and explain a test inventory in one sentence. Record the agent ID.",
+            "Record the provider configuration, authorized invoker, invocation time, and synthetic response.",
+            "Use a separate approved AWS test identity without the required invocation authorization for this disposable agent.",
+            "Repeat the same provider invocation. Capture the actual authorization error and effective permissions, without recording credentials.",
+            "Record provider readiness and authorization separately. Proceed to required synchronization only after preview approval; otherwise, mark full PoC acceptance BLOCKED."
+          ],
+          "notes": [
+            "AWS permits a minimal agent without action groups or knowledge bases. This test needs no corporate connector. [P21]",
+            "A missing console item is not sufficient authorization evidence. Capture denial of the attempted provider operation.",
+            "Do not label these results as Agent 365 registry-sync, runtime-telemetry, or threat-detection proof."
+          ]
+        },
+        {
+          "title": "Required Agent 365 preview synchronization (ONB-10)",
+          "paragraphs": [
+            "Run this path only after provider readiness and separate preview approval. It does not replace the required provider authorization test.",
+            "If rollout, preview approval, or documented credential authority is unavailable, mark this path and full requested PoC acceptance BLOCKED.",
+            "Preserve the separate provider result. Do not count it as evidence that the required connected-platform demonstration passed."
+          ],
+          "steps": [
+            "Approve the required registry-sync preview scope separately. Record the Microsoft connection owner and expected AWS agent.",
+            "Review the exact connector permissions above. Obtain explicit approval for invocation and deletion authority.",
+            "Confirm the Microsoft administrator can open Connected platforms. Verify the AWS account and region again.",
+            "Create the approved dedicated IAM access key. Store its ID and secret securely without copying them into evidence.",
+            "Open Microsoft 365 admin center > Agents > All Agents. In Connected platforms, select Manage.",
+            "Select + Connect a platform. Enter A365 Bedrock Test and a description identifying the evaluation scope.",
+            "Select Amazon Bedrock and the approved region. Record the automatic-import choice without assuming scheduled synchronization.",
+            "Enter the access key ID and secret through the credential form. Select Validate credentials.",
+            "Save only after successful validation. Select Sync agents.",
+            "Review provider, region, last run, last sync status, total synced agents, and synchronization results.",
+            "Match the synchronized entry to the AWS agent ID, name, and region.",
+            "Change the AWS description to A365-BEDROCK-SYNC-02. Run Sync agents again and compare supported metadata.",
+            "Run a synthetic provider conversation without Agent 365 runtime instrumentation. Record its exact UTC window and provider session ID.",
+            "Search the agreed Agent 365 telemetry surface for that identity and window.",
+            "Compare imported metadata with actual runtime records. Record absent transcripts as unobserved, not inspected.",
+            "Complete this boundary phase before deactivating the connector key."
+          ],
+          "notes": [
+            "A successful provider response and a successful inventory sync are separate acceptance results."
+          ]
+        },
+        {
+          "title": "Positive and negative demonstrations",
+          "table": {
+            "headers": ["Phase", "Procedure", "Expected evidence"],
+            "rows": [
+              ["Positive provider", "Invoke the prepared agent in AWS with A365-BEDROCK-01.", "Provider agent ID, region, time, and synthetic response."],
+              ["Required negative authorization", "Repeat the provider invocation using the approved identity without the required invocation permission.", "Actual provider authorization denial, test identity, and effective permission boundary."],
+              ["Required positive synchronization", "Run manual sync, then repeat after the description change.", "Matching registry identity, status, run time, count, and supported metadata update."],
+              ["Required negative runtime boundary", "Run an uninstrumented provider conversation and search the matching Agent 365 telemetry window.", "Provider session evidence and bounded search results. Registry metadata does not prove transcript inspection."],
+              ["Negative connector credentials", "After sync evidence, deactivate only the dedicated connector access key in AWS. Attempt another manual sync.", "Validation or synchronization fails. Capture the actual error without the key."],
+              ["Boundary", "Compare the registry record with runtime evidence requirements.", "Do not count inventory metadata as prompt, response, tool-call, or Teams-hosting evidence."]
+            ]
+          },
+          "notes": [
+            "A negative sync does not require deleting the provider agent. Do not invoke a delete action for this test.",
+            "If cached credentials delay the negative result, record it. Do not invent a revocation propagation time."
+          ]
+        },
+        {
+          "title": "Stop conditions and rollback",
+          "items": [
+            "Stop provider testing on unconfirmed Agents Classic eligibility, wrong account, unsupported region, unsupported role scope, or missing model access.",
+            "Record an eligibility block without claiming a failed Agent 365 connector. Do not provision AgentCore as an automatic replacement.",
+            "Stop the required connector path if deletion authority or preview participation is unapproved. Mark full requested PoC acceptance BLOCKED.",
+            "Stop if the connection can synchronize customer agents outside the approved boundary.",
+            "Stop if validation fails. Review the specific error before changing IAM permissions.",
+            "If created, remove the Microsoft connection and revoke the dedicated connector key after testing.",
+            "Delete the disposable AWS agent and associated test-only resources through AWS after owner approval.",
+            "Remove the test IAM user or policy only when no other approved test uses it.",
+            "Verify the provider workload, access key, connection, and billing separately.",
+            "Connection deletion does not guarantee provider deletion, stopped workloads, or immediate removal of retained registry history."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Claude Managed Agents Connected platforms preview",
+      "paragraphs": [
+        "This connector applies to Anthropic Claude Managed Agents. It does not register local Claude Code or every Claude API application. [P20]",
+        "Managed Agents APIs are beta. The Microsoft connection is preview. Approve both conditions before execution. [P20, P23]",
+        "Create a new non-default workspace. The default workspace does not expose the usable workspace ID required here. [P20]",
+        "Managed Agents are stateful. They are currently ineligible for Zero Data Retention and HIPAA BAA coverage. [P23]"
+      ],
+      "sections": [
+        {
+          "title": "Preflight and beta boundaries",
+          "items": [
+            "Confirm Claude Console account access, funded API usage, beta eligibility, and an available Managed Agents model.",
+            "Create a dedicated non-default workspace. Record its workspace ID and authorized owner.",
+            "Create a workspace-scoped API key for that workspace. Store it in the approved secret store.",
+            "Confirm Agent 365 eligibility and an administrator who can open Connected platforms.",
+            "Use no customer data, enterprise Model Context Protocol servers, production secrets, or connected business systems.",
+            "Model Context Protocol, or MCP, connects an agent to tools or data. This minimal test adds no MCP server.",
+            "Approve the provider-managed cloud environment and its networking policy before running the sample.",
+            "Set a cost limit and a session time limit. Do not leave an unattended beta session running."
+          ],
+          "notes": [
+            "The quickstart enables built-in agent tools and unrestricted networking. Those settings require explicit approval. [P22]",
+            "If unrestricted networking is prohibited, stop this sample path. Review a documented restricted configuration separately.",
+            "Raw REST calls need anthropic-beta: managed-agents-2026-04-01. The documented SDK supplies this header. [P22]"
+          ]
+        },
+        {
+          "title": "Create the provider agent and synchronize it",
+          "steps": [
+            "Create the dedicated non-default workspace and approved workspace-scoped key. Record only the workspace ID in evidence.",
+            "Load the key into the operator process through the approved secret-handling method.",
+            "Select a Managed Agents model available to that workspace. Set ANTHROPIC_MODEL to its verified identifier.",
+            "In an isolated working directory, create the Python environment below. Install and record the anthropic package version.",
+            "Run the provider code below. It creates an agent, cloud environment, and session.",
+            "Wait for the synthetic response and idle status. Record agent, environment, and session IDs.",
+            "Stop on an error, timeout, or unexpected tool action. Do not continue with an unverified provider agent.",
+            "Open Microsoft 365 admin center > Agents > All Agents. In Connected platforms, select Manage.",
+            "Select + Connect a platform. Enter A365 Claude Managed Test and the evaluation description.",
+            "Select Anthropic Claude Managed Agents. Record any required region choice and the automatic-import choice.",
+            "Enter the new workspace ID and its workspace-scoped API key. Select Validate credentials.",
+            "Save after successful validation. Select Sync agents.",
+            "Record provider, last run, last sync status, total synced agents, and synchronization results.",
+            "Match the provider agent ID and name to the registry entry. Do not substitute the session ID.",
+            "Perform the negative credential test below. Then remove credentials from the operator process."
+          ],
+          "notes": [
+            "Use the provider API or SDK quickstart. No verified equivalent Console creation wizard is assumed here. [P22]",
+            "An environment defines execution configuration. A session is one running instance of an agent in that environment.",
+            "Synchronization does not prove that session transcripts or runtime tool events reached Agent 365."
+          ]
+        },
+        {
+          "title": "PowerShell launch and documented SDK calls",
+          "paragraphs": [
+            "This is a proposed test script, not an executed deployment. Review beta API compatibility before use.",
+            "Inject ANTHROPIC_API_KEY securely. Do not enter a literal key in this document or in a recorded command.",
+            "The script uses provider-documented SDK calls with original synthetic instructions. Stop manually if the agreed time limit expires. [P22]"
+          ],
+          "code": "if ([string]::IsNullOrWhiteSpace($env:ANTHROPIC_API_KEY)) { throw 'Load the approved workspace key securely.' }\nif ([string]::IsNullOrWhiteSpace($env:ANTHROPIC_MODEL)) { throw 'Set an approved Managed Agents model identifier.' }\npython -m venv .venv\nif ($LASTEXITCODE -ne 0) { throw 'Python environment creation failed.' }\n& .\\.venv\\Scripts\\python.exe -m pip install anthropic\nif ($LASTEXITCODE -ne 0) { throw 'SDK installation failed.' }\n& .\\.venv\\Scripts\\python.exe -m pip show anthropic\ntry {\n@'\nimport os\nfrom anthropic import Anthropic\n\nclient = Anthropic(timeout=60.0)\nagent = client.beta.agents.create(\n    name=\"A365 Claude Managed Test\",\n    model=os.environ[\"ANTHROPIC_MODEL\"],\n    system=\"Use synthetic content only. Do not contact external services or change files.\",\n    tools=[{\"type\": \"agent_toolset_20260401\"}],\n)\nprint(\"agent_id:\", agent.id, \"version:\", agent.version, flush=True)\nenvironment = client.beta.environments.create(\n    name=\"A365 disposable environment\",\n    config={\"type\": \"cloud\", \"networking\": {\"type\": \"unrestricted\"}},\n)\nprint(\"environment_id:\", environment.id, flush=True)\nsession = client.beta.sessions.create(\n    agent=agent.id,\n    environment_id=environment.id,\n    title=\"A365 synthetic inventory test\",\n)\nprint(\"session_id:\", session.id, flush=True)\nwith client.beta.sessions.events.stream(session.id) as events:\n    client.beta.sessions.events.send(\n        session.id,\n        events=[{\n            \"type\": \"user.message\",\n            \"content\": [{\"type\": \"text\", \"text\": \"Return A365-CLAUDE-01. Explain synthetic data in one sentence. Use no tools.\"}],\n        }],\n    )\n    for event in events:\n        if event.type == \"agent.message\":\n            for part in event.content:\n                if part.type == \"text\":\n                    print(part.text, flush=True)\n        elif event.type == \"agent.tool_use\":\n            raise RuntimeError(\"Unexpected tool use. Review and stop the provider session.\")\n        elif event.type == \"session.status_idle\":\n            print(\"Provider session is idle.\", flush=True)\n            break\n'@ | & .\\.venv\\Scripts\\python.exe -\n    if ($LASTEXITCODE -ne 0) { throw 'Provider test failed. Review retained provider resources.' }\n}\nfinally {\n    Remove-Item Env:\\ANTHROPIC_API_KEY -ErrorAction SilentlyContinue\n}",
+          "notes": [
+            "The instructions are not an enforcement boundary. Built-in tools remain enabled in this documented quickstart configuration.",
+            "An SDK error or stopped local stream does not prove that the remote session stopped.",
+            "The script prints resource IDs before later operations. Use them to locate partial deployments for cleanup.",
+            "The script removes the local key after provider testing. Retrieve it securely again for the Microsoft connection form."
+          ]
+        },
+        {
+          "title": "Positive and negative demonstrations",
+          "table": {
+            "headers": ["Phase", "Action", "Required evidence"],
+            "rows": [
+              ["Positive provider", "Run the synthetic task with the approved workspace key.", "Agent ID, workspace ID, environment ID, session ID, synthetic response, and idle status."],
+              ["Positive registry", "Run Sync agents and locate the matching provider agent.", "Connection status, run time, count, and exact provider-to-registry identity match."],
+              ["Negative credentials", "After positive evidence, revoke the dedicated test key in the provider. Attempt another manual sync.", "The actual credential or synchronization error. Do not capture the revoked key."],
+              ["Coverage boundary", "Compare registry metadata with the runtime evidence checklist.", "Mark transcript or tool-event collection unproven unless a separate instrumented path supplies it."]
+            ]
+          }
+        },
+        {
+          "title": "Stop conditions and rollback",
+          "items": [
+            "Stop if only the default workspace is available or no workspace-scoped key can be issued.",
+            "Stop if beta access, model availability, networking approval, or required data-retention terms are incompatible.",
+            "Stop if the response uses unexpected tools or accesses data outside the synthetic scope.",
+            "Remove the Microsoft connection. Use an approved workspace cleanup credential for the remaining provider operations.",
+            "If the negative test revoked the original key, obtain a separately approved cleanup credential. Do not assume revoked credentials still work.",
+            "No agent DELETE endpoint was verified. Agent retirement uses POST /v1/agents/{agent_id}/archive. [V20]",
+            "Agent archival is irreversible. Obtain explicit owner approval and preserve evidence before archiving the disposable agent. [V19]",
+            "Archival blocks new sessions, but existing sessions continue. The archived agent definition remains. [V19]",
+            "Delete each recorded test session through DELETE /v1/sessions/{session_id}. Verify session_deleted confirmation. [V17]",
+            "Delete the disposable environment through DELETE /v1/environments/{environment_id}. Verify environment_deleted confirmation. [V18]",
+            "Revoke the original test key and any replacement cleanup key after provider cleanup.",
+            "Verify remote session state and billing. Closing a terminal does not establish provider cleanup.",
+            "Remove local process credentials and the disposable Python environment after evidence capture.",
+            "Retained provider state and registry history can remain. Do not promise global or immediate deletion."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "OpenAI Connected platforms coverage gap",
+      "paragraphs": [
+        "No verified native OpenAI Connected platforms connector is documented as of 2026-09-18. Record this as a coverage gap. [P20]",
+        "Do not invent an OpenAI connection wizard, authentication fields, API, or committed availability date.",
+        "An OpenAI Agents SDK integration, an OpenAI model in Foundry, and Codex discovery are different paths. [P02, P27]",
+        "A successful alternative does not close the native external-platform registry-sync gap."
+      ],
+      "sections": [
+        {
+          "title": "Preflight and decision",
+          "items": [
+            "Define whether the requirement concerns provider inventory, hosted runtime telemetry, model use, or endpoint discovery.",
+            "Use an authorized registry reader or administrator to inspect available options. Do not change platform connections.",
+            "Require the selected alternative's own licensing, provider account, data handling, and role checks.",
+            "Do not create an OpenAI API key solely for a nonexistent documented connector.",
+            "Keep the native-connector acceptance result separate from alternative integration results."
+          ]
+        },
+        {
+          "title": "Record the gap and select an approved alternative",
+          "steps": [
+            "Write the requirement as native OpenAI external-platform inventory synchronization through Connected platforms.",
+            "Record the source date and current supported-platform list from P20.",
+            "If authorized, open Microsoft 365 admin center > Agents > All Agents > Connected platforms > Manage.",
+            "Inspect + Connect a platform without saving a connection. Record the actual available platform names.",
+            "Do not submit OpenAI credentials under Amazon Bedrock, Anthropic Claude Managed Agents, or another provider.",
+            "Record the native path as unsupported by the verified documentation, not as a failed deployment.",
+            "If runtime integration is required, select the separately documented OpenAI Agents SDK integration chapter.",
+            "If workstation discovery is required, select the Codex procedure in the local-agent chapter.",
+            "Apply the selected alternative's preflight gates. Use the marker A365-OPENAI-ALTERNATIVE-01 in its synthetic test.",
+            "Record the alternative's own positive and negative results. Keep the native-connector gap open.",
+            "If the tenant exposes an undocumented new option, stop. Obtain matching official authentication and support guidance before use."
+          ]
+        },
+        {
+          "title": "Acceptance, evidence, and rollback",
+          "table": {
+            "headers": ["Check", "Outcome to record"],
+            "rows": [
+              ["Native connector", "No verified onboarding procedure. No deployment success claim."],
+              ["Positive alternative", "Only the chosen SDK or endpoint capability passes, using that chapter's evidence."],
+              ["Negative boundary", "A model response or a Codex inventory record does not count as native Connected platforms synchronization."],
+              ["Evidence", "Requirement, source date, supported list, observed tenant options when authorized, gap owner, and alternative decision."],
+              ["Rollback", "The inspection path creates no connector. Clean up only resources created by the separately approved alternative."]
+            ]
+          },
+          "notes": [
+            "This is not a forecast. Reassess only when current official documentation supplies a supported OpenAI procedure."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Local Codex, Claude Code, and OpenClaw",
+      "paragraphs": [
+        "Endpoint discovery identifies installed local agents. It does not turn them into hosted Agent 365 SaaS integrations. [P26]",
+        "Separate three tests: discovery, runtime threat protection, and whole-application blocking.",
+        "Defender for Endpoint runtime protection preview is separate from Frontier and Intune application blocking. [P34]",
+        "Native Claude Code and Codex CLI support runtime prompt and tool inspection with audit or block modes. [P34]",
+        "Their Microsoft 365 Local Agents application-blocking matrix still says unavailable. That does not mean all threat blocking is unavailable. [P24]"
+      ],
+      "sections": [
+        {
+          "title": "Preflight by evidence surface",
+          "table": {
+            "headers": ["Surface", "Prerequisites and limits"],
+            "rows": [
+              [
+                "Defender discovery",
+                "Commercial cloud; Defender for Endpoint Plan 2; onboarded Windows or macOS device; current platform and engine."
+              ],
+              [
+                "Antivirus state",
+                "Defender Antivirus must use active mode with real-time protection. Discovery starts automatically."
+              ],
+              [
+                "Risk indicators",
+                "Confirm E7 or Agent 365 plus Defender for Endpoint Plan 2. Do not infer risk entitlement from discovery alone."
+              ],
+              [
+                "Local Agents Frontier",
+                "The guide states E3 minimum for viewing, a supported admin or reader role, Intune-managed Windows, and Frontier enrollment."
+              ],
+              [
+                "Shadow AI Frontier",
+                "The guide states E5 minimum, Defender for Endpoint, Intune-managed Windows, an authorized role, and Frontier enrollment."
+              ],
+              [
+                "Additional traffic metadata",
+                "Global Secure Access requires the documented Internet Access, Entra Suite, or E7 entitlement."
+              ],
+              [
+                "Runtime threat protection",
+                "Apply the separate preview platform, version, policy, licensing, and onboarding gates in the control chapters."
+              ]
+            ]
+          },
+          "notes": [
+            "These requirements describe different surfaces. Agent 365 alone does not establish endpoint discovery or every portal feature. [P24, P25, P26]",
+            "macOS discovery remains preview. This procedure uses a dedicated Windows test device. [P26]",
+            "Do not enroll Frontier merely to prove Defender discovery. Frontier gates apply to the corresponding Microsoft 365 views.",
+            "Use provider-licensed test accounts. Keep the local project free of customer code and credentials."
+          ]
+        },
+        {
+          "title": "Install and discover Codex CLI or Claude Code",
+          "paragraphs": [
+            "Run each tool in a dedicated synthetic project. Select only tools approved for the test.",
+            "Use official installers. Record the installed version and authentication method without recording credentials. [P27, P28]"
+          ],
+          "steps": [
+            "Prepare a dedicated Windows test device. Record its device ID, operator account, and software baseline.",
+            "Confirm Defender onboarding, Plan 2 entitlement, current engine, active Antivirus, and real-time protection.",
+            "For Microsoft 365 Frontier views, complete the separately approved Frontier enrollment gates.",
+            "Install Codex CLI with npm install -g @openai/codex, or install Claude Code with winget install Anthropic.ClaudeCode.",
+            "Record codex --version or claude --version. Stop if installation or provider support checks fail.",
+            "Create the synthetic project with the PowerShell commands below. Add no repository credentials or MCP connections.",
+            "Start codex or claude from that project. Use the provider's supported test-account sign-in flow.",
+            "Ask: Read fixture.txt. Return its marker and total the two quantities. Do not change files or use network tools.",
+            "Record the response and any actual tool operations. Exit the test session after completion.",
+            "Open Microsoft Defender portal > Assets > AI agents > Local agents.",
+            "Locate the agent record. Inspect the device, account, version, and discovered MCP configuration.",
+            "Where entitled, open Microsoft 365 admin center > All Agents > Local Agents (Frontier).",
+            "Capture Details and Detected devices. Explain absent Global Secure Access fields rather than fabricating usage data.",
+            "Run the AgentsInfo query below. Compare its identity and time with the observed device record."
+          ],
+          "code": "New-Item -ItemType Directory -Path .\\local-agent-test -Force | Out-Null\nSet-Location .\\local-agent-test\n@'\nMarker: A365-LOCAL-01\nItem,Quantity\nTest bolts,2\nTest washers,3\n'@ | Set-Content -Path .\\fixture.txt -Encoding UTF8\n\n# Run only the installer approved for this test.\n# npm install -g @openai/codex\n# winget install Anthropic.ClaudeCode\n\n# After installation, run the matching version check and client.\n# codex --version\n# codex\n# claude --version\n# claude",
+          "notes": [
+            "Use Sign in with ChatGPT or the documented API-key method for Codex. Verify the chosen account's entitlement. [P27]",
+            "Use Claude Code's supported subscription, API, or cloud authentication arrangement. [P28]",
+            "An agent record represents user, device, and agent type. Separate project folders do not necessarily create separate identities. [P26]",
+            "Discovered MCP configuration is not proof that a tool executed. Use runtime evidence for that assertion. [P26]"
+          ]
+        },
+        {
+          "title": "Install and discover OpenClaw without enterprise connections",
+          "steps": [
+            "Use a separate disposable device or restore the approved baseline. Record its Defender state.",
+            "Open the official OpenClaw getting-started guide. Select a currently supported installation target.",
+            "Verify that the chosen execution target is covered by the intended Defender discovery path.",
+            "If installation uses WSL or another guest runtime, verify sensor coverage first. Do not assume Windows-host coverage.",
+            "Install through the provider's documented method. Record the OpenClaw and runtime versions.",
+            "Complete onboarding with a dedicated, authorized model-provider account. Do not reuse production keys.",
+            "Verify gateway status through the documented provider command. Open its local dashboard.",
+            "Do not connect Teams, email, messaging accounts, corporate MCP servers, or customer repositories.",
+            "Ask: Return A365-OPENCLAW-01 and total the synthetic quantities 2 and 3. Do not contact external tools.",
+            "Inspect Microsoft Defender portal > Assets > AI agents > Local agents for the matching supported discovery record.",
+            "Where entitled, inspect Microsoft 365 admin center > Agents > Shadow AI. Capture Details and Detected devices.",
+            "Compare the provider version, device, account, and first-seen time. Stop the gateway after the synthetic test."
+          ],
+          "notes": [
+            "Follow the current provider onboarding guide instead of assuming an unsupported native Windows installation. [P29]",
+            "If the required discovery record is absent, record the coverage result. Do not claim discovery from installation alone."
+          ]
+        },
+        {
+          "title": "Discovery evidence and negative checks",
+          "code": "AgentsInfo\n| where Platform == \"LocalAgents\"\n| summarize arg_max(Timestamp, Name, Version, LifecycleStatus, RawAgentInfo) by AgentId\n| where LifecycleStatus !in~ (\"Deleted\", \"Uninstalled\")",
+          "table": {
+            "headers": ["Test", "Expected evidence"],
+            "rows": [
+              ["Positive execution", "The selected local tool returns A365-LOCAL-01 or A365-OPENCLAW-01 and the synthetic total 5."],
+              ["Positive discovery", "A matching agent, user, device, version, and time appear in the supported inventory."],
+              ["Negative identity assumption", "Run a second synthetic project under the same user and device. Do not require a new agent identity."],
+              ["Negative tool inference", "A configured MCP server is not reported as an executed tool without execution evidence."],
+              ["Negative support claim", "Record unavailable native CLI application blocking as unavailable in that specific admin-center surface."]
+            ]
+          },
+          "notes": [
+            "The query can show more than one authorized lab record. Limit exports to approved test identities.",
+            "Discovery can be delayed. Use an agreed observation window; do not invent an immediate-detection guarantee. [P26]"
+          ]
+        },
+        {
+          "title": "Runtime protection is not whole-application blocking",
+          "table": {
+            "headers": ["Tool or mechanism", "Supported claim", "Limit"],
+            "rows": [
+              [
+                "Claude Code and Codex CLI runtime protection",
+                "Preview prompt and tool inspection can audit or block supported threats.",
+                "Apply the control chapter's exact prerequisites and safe positive/negative test. Do not infer coverage for every invocation."
+              ],
+              [
+                "OpenClaw runtime protection",
+                "Network inspection is a distinct protection path.",
+                "Certificate-pinned traffic and HTTP/3 are excluded. Network visibility is not unrestricted prompt or tool inspection."
+              ],
+              [
+                "Microsoft 365 Local Agents",
+                "Discovery covers Claude Code, Codex CLI, and Codex Desktop.",
+                "The documented whole-application blocking action is unavailable for these native clients."
+              ],
+              [
+                "Supported VSCode extensions",
+                "The Local Agents matrix lists application blocking for Claude Code and Codex extensions.",
+                "Extension coverage does not establish the same action for native CLI clients."
+              ],
+              [
+                "Microsoft 365 Shadow AI",
+                "The documented OpenClaw application-blocking action uses Intune policy.",
+                "Propagation and shared Node.js effects can extend across all Intune-managed Windows devices."
+              ]
+            ]
+          },
+          "notes": [
+            "Use P34 and the control chapters' configuration sources for runtime protection. Use P24 and P25 for administrative application blocking.",
+            "For runtime protection, establish a permitted synthetic baseline before the control chapter's approved negative test.",
+            "Record inspection mode, policy scope, actual alert or block, and exclusions. A benign prompt alone does not test threat prevention.",
+            "Do not use a harmless synthetic file test as proof that malicious prompts or tool actions are blocked."
+          ]
+        },
+        {
+          "title": "Optional whole-application blocking: disposable tenant only",
+          "paragraphs": [
+            "Do not run this optional test in a customer production tenant or a shared tenant.",
+            "Use only a dedicated disposable tenant. The documented action can affect all Intune-managed Windows devices. [P24, P25]",
+            "A small device or user group does not establish isolation for this action.",
+            "Node.js-based blocking can stop other agents and processes using the shared runtime. Unblocking one can remove the shared block. [P24]",
+            "Documented propagation is 15 minutes to eight hours. Do not present it as an immediate emergency-response guarantee. [P25]"
+          ],
+          "steps": [
+            "Confirm the tenant is dedicated and disposable. Inventory every Intune-managed Windows device in it.",
+            "Obtain explicit approval for tenant-wide impact and shared Node.js disruption. Otherwise skip this demonstration.",
+            "Record current policy state and installed Node.js-based test processes. Use no production process.",
+            "Start the approved synthetic OpenClaw test and capture successful baseline execution.",
+            "Open Microsoft 365 admin center > Agents > Shadow AI. Select the test OpenClaw entry.",
+            "Open Security policies > Block > Apply Policies. Record the operation and time.",
+            "Allow documented Intune propagation. Inspect policy delivery on every disposable test device.",
+            "Attempt a new synthetic OpenClaw operation. Record the actual blocking result and shared-runtime effects.",
+            "Restore the unblocked state through the same documented policy workflow. Record its time and affected runtime.",
+            "Wait for policy removal and retest every disposable device. Record any remaining block before ending the test."
+          ],
+          "notes": [
+            "For a supported extension, the Local Agents action is Security policies > Block agent > Apply Policies. [P24]",
+            "Do not substitute native Codex CLI or Claude Code in this whole-application blocking procedure.",
+            "Do not promise independent rollback for one Node.js agent. Verify all affected processes after restoring the shared policy."
+          ]
+        },
+        {
+          "title": "Stop conditions and cleanup",
+          "items": [
+            "Stop on missing endpoint entitlement, inactive Antivirus, unsupported execution target, or unapproved provider authentication.",
+            "Stop if local tools access a real repository, personal directory, enterprise service, or production secret.",
+            "Stop the application-blocking path unless every tenant-wide impact gate passes.",
+            "For runtime protection, restore only the test policy configuration defined in the control chapter. Verify its effective state.",
+            "Sign out of test tools. Revoke test-only provider credentials when no other approved test needs them.",
+            "Uninstall the selected tool through its provider's supported method. Stop and remove test gateway services where applicable.",
+            "Remove synthetic project files after evidence capture. Restore or discard the disposable device baseline.",
+            "Retained discovery or alert records can remain. Uninstallation does not guarantee immediate inventory deletion."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Optional Frontier and Foundry autopilot pathway",
+      "paragraphs": [
+        "This chapter is optional. It is not required for normal hosted-agent publication or the core registry demonstrations.",
+        "An autopilot blueprint is a publishable template. Users create instances with separate agent identities and agent user accounts. [P32]",
+        "Only hosted agents support this autopilot publication path. Do not apply it to a Foundry prompt agent. [P12]",
+        "Frontier has no specific service-level agreement. The Agent 365 guidance recommends trials rather than Frontier for product evaluations. [P30]"
+      ],
+      "sections": [
+        {
+          "title": "Hard preflight gates",
+          "paragraphs": [
+            "Resolve the licensing discrepancy before provisioning. Do not select the cheapest interpretation and assume it works.",
+            "The Agent 365 Frontier page states at least one E7 license. [P30]",
+            "The Foundry autopilot guide states a Copilot or Agent 365 license, including E7. [P32]",
+            "General Frontier guidance requires Copilot licenses for participating users. Verify the actual tenant and user eligibility. [P31]"
+          ],
+          "items": [
+            "Use an authorized evaluation tenant. Confirm the selected users' Copilot, Agent 365, or E7 entitlements with the licensing owner.",
+            "Have Global Administrator accept Agent 365 preview terms where required. Do not use this role for routine execution.",
+            "Confirm the 25-seat preview subscription in Billing > Licenses. Check free seats before each instance creation.",
+            "Plan one preview seat per instance. Do not count an unassigned commercial license as a verified preview seat.",
+            "Confirm Azure provisioning and image-push roles specified by the current sample. Record their actual resource scopes.",
+            "Assign AI Administrator or Global Administrator for the documented blueprint approval, as authorized.",
+            "Confirm that the test user belongs to the approved instance-creation audience.",
+            "Approve identity creation, agent user accounts, template permissions, cost, and asynchronous provisioning.",
+            "Rehearse the complete sample and cleanup in the evaluation tenant before a customer demonstration."
+          ]
+        },
+        {
+          "title": "Sample drift gate",
+          "paragraphs": [
+            "The Learn procedure identifies publishAsAutopilot, publishScope, useAgenticUserTemplate, and agenticUserTemplate as relevant publication fields. [P32]",
+            "The researched Python script contains publishAsAutopilot and publishScope. It omits the two template fields. [P33]",
+            "This is a reproducibility gap, not proof that the service fails.",
+            "The reference-samples.json entry is foundry-autopilot. Its manifest is samples\\python\\foundry-autopilot-agent\\azure.yaml.",
+            "The source snapshot is e899cd1ac6b372532954d0d4c22c4abc461621db, dated 2026-09-17T15:39:41Z. Source existence was checked; deployment was not verified.",
+            "Compare the current sample with the current documented request. Pin and record a rehearsed compatible revision before use.",
+            "Do not invent missing request fields, template identifiers, permissions, or API endpoints."
+          ],
+          "items": [
+            "Review samples\\python\\foundry-autopilot-agent in the official microsoft-foundry\\foundry-samples repository.",
+            "Inspect scripts\\publish-digital-worker.ps1 and scripts\\post-provision.ps1 before azd provision.",
+            "Confirm what the post-provision hooks build, create, and publish. Provisioning can trigger those additional operations.",
+            "If the mismatch remains unresolved, mark the optional pathway blocked. Continue the normal Foundry chapter instead."
+          ]
+        },
+        {
+          "title": "Enroll, publish, approve, and create one instance",
+          "steps": [
+            "Complete the licensing, seat, role, networking, sample revision, and cleanup gates above.",
+            "Open Microsoft 365 admin center > Copilot > Settings > View all. Search Frontier.",
+            "Open Copilot Frontier. Select Specific users and the approved test users.",
+            "Where required, have Global Administrator open Agents > Overview > Try now > I agree.",
+            "Open Billing > Licenses. Verify the preview subscription and available seats.",
+            "Obtain the foundry-autopilot sample entry. Select its Python sample directory and verify the pinned revision below.",
+            "Authenticate az and azd to the approved tenant and subscription. Confirm the displayed identities before provisioning.",
+            "Inspect sample parameters and hooks. Run azd provision only after the sample drift gate passes.",
+            "Record created resource IDs, blueprint identity, publication result, and deployment values without secrets.",
+            "Open Agents > All agents > Requests > Pending activate > Publish new agent.",
+            "In Publish to users, select Activate > Specific users or groups. Select only the approved instance-creation audience.",
+            "In Apply template, review licenses and policy. Select Accept permissions > Grant admin consent after authorized approval.",
+            "Select Review and finish > Publish. Confirm Registry shows Available for the blueprint.",
+            "As the approved user, open Teams > Apps > Agents for your team. Select the blueprint > Create instance > Create.",
+            "Wait for provisioning. Verify the Teams greeting, organization-chart entry, instance identity, agent user account, and consumed preview seat."
+          ],
+          "code": "$TenantId = Read-Host 'Approved evaluation tenant ID'\n$ApprovedAutopilotSamplePath = Read-Host 'Reviewed Python autopilot sample directory'\n$ExpectedCommit = 'e899cd1ac6b372532954d0d4c22c4abc461621db'\nif (-not (Test-Path (Join-Path $ApprovedAutopilotSamplePath 'azure.yaml'))) { throw 'Sample directory is invalid.' }\nSet-Location $ApprovedAutopilotSamplePath\n$ActualCommit = git rev-parse HEAD\nif ($LASTEXITCODE -ne 0 -or $ActualCommit -ne $ExpectedCommit) { throw 'Sample revision does not match the approved source snapshot.' }\naz login --tenant $TenantId\nif ($LASTEXITCODE -ne 0) { throw 'Azure authentication failed.' }\naz account show --query '{tenantId:tenantId,subscriptionId:id,name:name}' -o table\nazd auth login\nif ($LASTEXITCODE -ne 0) { throw 'Azure Developer CLI authentication failed.' }\n# Verify both tool contexts and resolve sample drift before this command.\nazd provision\nif ($LASTEXITCODE -ne 0) { throw 'Provisioning or a post-provision hook failed. Inspect partial resources.' }",
+          "notes": [
+            "Do not apply the normal hosted code-build Docker statement to this image-based sample. Check its own build prerequisites. [P32]",
+            "An available blueprint is not a created instance. A created instance is not proof that every telemetry or security control works.",
+            "Do not retry Create blindly while provisioning is pending. Inspect the existing request and seat usage first."
+          ]
+        },
+        {
+          "title": "Positive and negative demonstrations",
+          "table": {
+            "headers": ["Phase", "Action", "Expected evidence"],
+            "rows": [
+              [
+                "Positive instance",
+                "As the approved user, create one instance. Ask: Return A365-AUTOPILOT-01 and explain a synthetic task.",
+                "Successful instance state, greeting, synthetic response, identity, agent user account, and one consumed seat."
+              ],
+              [
+                "Negative audience",
+                "Use a licensed test user excluded from the approved instance-creation audience. Check for alternate assignments first.",
+                "The excluded user cannot create the scoped instance. Record the actual unavailable action or denial."
+              ],
+              [
+                "Negative reproducibility",
+                "Compare the pinned sample's publication request with the required template fields before execution.",
+                "If incompatible, record blocked without provisioning. Do not label the sample as working."
+              ],
+              [
+                "Telemetry boundary",
+                "Check the instance's actual instrumentation and records separately.",
+                "Blueprint availability, Teams greeting, and organization-chart presence do not substitute for Agent 365 runtime evidence."
+              ]
+            ]
+          }
+        },
+        {
+          "title": "Stop conditions and rollback",
+          "items": [
+            "Stop on unresolved licensing, missing preview seats, unavailable Create instance, unapproved consent, or sample incompatibility.",
+            "Stop on an unexpected blueprint identity, user-account scope, or tenant selection.",
+            "Save redacted deployment and instance evidence. Record all partial resources when a hook fails.",
+            "Remove test instance access and retire the instance through the currently documented product controls.",
+            "Verify the agent user account, identity, and preview-seat state separately. Do not assume one action removes them all.",
+            "Deactivate or remove the test blueprint publication through the supported administrative workflow.",
+            "Remove only exclusively owned Azure test resources and approved test-only grants.",
+            "Restore the prior Frontier audience and tenant settings after confirming no other approved evaluation depends on them.",
+            "Verify provider workload state, Microsoft 365 artifacts, and Azure billing separately. No global rollback is promised."
+          ]
+        }
+      ]
+    }
+  ]
+}

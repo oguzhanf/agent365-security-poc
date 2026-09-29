@@ -1,0 +1,470 @@
+{
+  "front_chapters": [
+    {
+      "title": "PoC scope and acceptance",
+      "paragraphs": [
+        "This proof of concept (PoC) tests Agent 365 controls against named test agents.",
+        "The kit contains source code, infrastructure templates, procedures, test data, queries, and an evidence recorder.",
+        "No customer tenant result is included.",
+        "The customer must approve each deployment, policy change, external connection, and test scope."
+      ],
+      "sections": [
+        {
+          "title": "Execution sequence",
+          "steps": [
+            "Approve the scope, licences, roles, preview access, data locations, cost limit, and evidence location.",
+            "Install the kit and complete its local checks.",
+            "Prepare the dedicated identities, devices, provider accounts, synthetic files, and optional Azure resources.",
+            "Deploy each agent through its platform chapter. Complete ONB-01 through ONB-10.",
+            "Resolve any required onboarding blocker before claiming complete agent coverage.",
+            "Apply the Microsoft 365 and Entra procedures. Run M365 and ENTRA cases.",
+            "Apply the approved Defender and network procedures. Run DEF, MDE, MDCA, DFC, and GSA cases.",
+            "Apply the Purview procedures and run the approved PUR cases.",
+            "Connect the required investigation data. Run SENT and COP cases.",
+            "Run RSP cases after the required identity, action, and incident evidence exists.",
+            "Review acceptance and measured value with the customer.",
+            "Complete final cleanup only after all dependent cases finish."
+          ],
+          "notes": [
+            "Restore temporary policy changes after each case.",
+            "Keep shared test agents and resources until every case that needs those objects is complete.",
+            "Destructive case cleanup belongs at that object's final use, not automatically after its first test.",
+            "Use separate evidence stores when the approved scope or catalogue changes.",
+            "Catalogue acceptance does not make the unsupported OpenAI connector available."
+          ]
+        },
+        {
+          "title": "Required demonstrations",
+          "table": {
+            "headers": ["Requested group", "Test instance", "Primary proof"],
+            "rows": [
+              ["Microsoft AI Platform", "CPS-01: Copilot Studio", "Registration, identity, authenticated use, and supported controls."],
+              ["Microsoft AI Platform", "FDR-01: Foundry hosted agent", "Hosting, publication, identity, and explicit Agent 365 telemetry."],
+              ["Partner integrated", "SAS-01: entitled partner agent", "Deployment, provider authorization, and actual interaction evidence."],
+              ["SDK-enabled", "SDK-01: custom runtime", "Model execution, explicit instrumentation, and service-side telemetry."],
+              ["Connected platform", "EXT-01: Amazon Bedrock", "Provider inventory synchronization and supported management actions."],
+              ["Connected platform", "EXT-02: Claude Managed Agents", "Preview workspace connection and inventory synchronization."],
+              ["Connected platform", "OpenAI connector gap", "Record the unsupported connector request. Use a separate SDK demonstration."],
+              ["Shadow and local", "SHD-01: approved test device", "Local discovery and separately configured endpoint controls."]
+            ]
+          },
+          "notes": [
+            "The group names describe this PoC. They do not replace product classifications.",
+            "A missing feature remains a gap. Another integration does not prove the missing feature."
+          ]
+        },
+        {
+          "title": "Approve the test plan",
+          "steps": [
+            "Copy config\\poc-plan.example.json to an approved location outside the repository.",
+            "Replace each placeholder with the approved test value.",
+            "Record the tenant, cloud, region, users, devices, resource groups, agent aliases, and owners.",
+            "Record the approved cost limit and stop time.",
+            "Review the required flag for each catalogue case.",
+            "Approve optional preview tests separately.",
+            "Set target times before execution. Do not use measured times as retrospective targets.",
+            "Record the approval reference and the evidence reviewer."
+          ],
+          "notes": [
+            "Keep actual tenant identifiers and approval records outside the source repository.",
+            "If a required feature is absent, record BLOCKED. Do not change the result to PASS."
+          ]
+        },
+        {
+          "title": "Apply acceptance rules",
+          "items": [
+            "Run both the positive phase and the negative phase for each case.",
+            "Record the actual service decision and the actual action result.",
+            "Keep policy mode, scope, identity, timestamps, and correlation evidence.",
+            "Report required and optional cases separately.",
+            "Report approved exclusions with their original and revised denominators.",
+            "Keep local simulation results separate from live product results.",
+            "Keep a blocked case in the original denominator."
+          ],
+          "notes": [
+            "A screenshot of a configured policy does not prove enforcement.",
+            "A model refusal does not prove that a security service blocked the request.",
+            "An empty query result does not prove that the agent performed no action."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Prepare the test environment",
+      "sections": [
+        {
+          "title": "Assign operators",
+          "table": {
+            "headers": ["Operator", "Responsibility"],
+            "rows": [
+              ["PoC lead", "Approve scope, sequence, cost, stop conditions, and acceptance."],
+              ["Microsoft 365 administrator", "Check licences, agent inventory, deployment scope, and consent."],
+              ["Identity administrator", "Check identity objects, permissions, Conditional Access, and access expiry."],
+              ["Power Platform administrator", "Prepare the Copilot Studio environment and connector policies."],
+              ["Azure administrator", "Approve resources, roles, networking, model quota, and cleanup."],
+              ["Security operator", "Prepare Defender, endpoint, network, and Sentinel controls."],
+              ["Compliance operator", "Prepare Purview labels, policies, search, retention, and evidence access."],
+              ["Evidence reviewer", "Compare artifacts with criteria and approve the final result."]
+            ]
+          },
+          "notes": [
+            "A responsibility is not an Entra role name.",
+            "Use the product role required by the relevant procedure.",
+            "Activate elevated roles only for the approved operation."
+          ]
+        },
+        {
+          "title": "Prepare isolation",
+          "steps": [
+            "Use a dedicated evaluation tenant where possible.",
+            "Create named test users, test groups, and test devices.",
+            "Create a dedicated Power Platform environment and a dedicated Azure resource group.",
+            "Use separate provider accounts or workspaces for external agents.",
+            "Record all existing policy settings before changes.",
+            "Check policy assignments for production users and devices.",
+            "Stop if a change cannot remain within the approved scope.",
+            "Use a disposable tenant for a documented tenant-wide blocking demonstration."
+          ],
+          "notes": [
+            "Do not connect production mailboxes, customer sites, or enterprise messaging to the test agents.",
+            "Do not disable a production protection to make a test succeed."
+          ]
+        },
+        {
+          "title": "Prepare synthetic data",
+          "steps": [
+            "Inspect each file in fixtures.",
+            "Copy the public procedure and restricted record to the approved test location.",
+            "Use the DOCX copies for Office and SharePoint sensitivity-label tests. Use the TXT copies for the custom runtime.",
+            "Apply the test sensitivity label through the supported product procedure.",
+            "Create separate allowed and denied test accounts.",
+            "Share each test file only with the intended test identities.",
+            "Record the access grants before agent execution.",
+            "Use the untrusted instruction only in the isolated test."
+          ],
+          "notes": [
+            "The fixture text does not create a Microsoft Purview label. The supplied DOCX files are also unlabeled.",
+            "Keep labeled test copies outside the repository. Never overwrite the clean fixture with protected customer content.",
+            "The untrusted instruction is not a guaranteed detector trigger.",
+            "Use the official harmless demonstration when the endpoint procedure requires that demonstration."
+          ]
+        },
+        {
+          "title": "Set stop conditions",
+          "items": [
+            "Stop if a test affects a production identity, device, resource, or agent.",
+            "Stop if an agent reads real restricted data.",
+            "Stop if the selected policy scope differs from the approved scope.",
+            "Stop if a licence, consent, or required feature is absent.",
+            "Stop at the approved cost limit or end time.",
+            "Record the cause and preserve evidence before cleanup."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Install and inspect the kit",
+      "sections": [
+        {
+          "title": "Get the repository",
+          "steps": [
+            "Install Git, Python 3.12, Node.js 24, and Azure CLI.",
+            "Install Bicep 0.46.1 for the local infrastructure checks.",
+            "Authenticate to GitHub with an account that can read the repository.",
+            "Clone the repository.",
+            "Open a PowerShell session in the repository root.",
+            "Read the source files before execution."
+          ],
+          "code": "git clone https://github.com/oguzhanf/agent365-security-poc.git\nSet-Location .\\agent365-security-poc\npython --version\nnode --version\naz bicep install --version v0.46.1"
+        },
+        {
+          "title": "Run local checks",
+          "paragraphs": [
+            "The evidence recorder uses the Python standard library.",
+            "The document build uses the pinned npm dependencies.",
+            "Runtime dependencies are separate from document dependencies."
+          ],
+          "code": "npm ci --ignore-scripts --no-audit --no-fund\n.\\scripts\\Test-Kit.ps1",
+          "notes": [
+            "These checks do not authenticate to a tenant.",
+            "These checks do not prove a Microsoft security control."
+          ]
+        },
+        {
+          "title": "Use the package files",
+          "table": {
+            "headers": ["Path", "Use"],
+            "rows": [
+              ["docs\\Agent-365-Security-PoC.docx", "Editable runbook."],
+              ["docs\\Agent-365-Security-PoC.pdf", "Fixed-layout runbook."],
+              ["docs\\POC.adoc", "Repository-readable runbook."],
+              ["catalogue\\scenarios.json", "Test procedures and acceptance criteria."],
+              ["catalogue\\support-matrix.json", "Control coverage and integration boundaries."],
+              ["infra", "Optional Azure infrastructure templates."],
+              ["runtime", "Outbound-only custom model agent and explicit SDK instrumentation."],
+              ["hosted_foundry", "Foundry hosted model agent and explicit SDK instrumentation."],
+              ["providers", "Bedrock infrastructure and Claude Managed Agents lifecycle code."],
+              ["scripts\\azure", "Scoped infrastructure deployment and cleanup."],
+              ["poc_evidence", "Local evidence records and acceptance reports."],
+              ["queries", "Defender and Sentinel investigation queries."],
+              ["fixtures", "Synthetic test content."],
+              ["reference-samples.json", "Immutable references to official sample code."],
+              ["tools", "Document build and export tools."]
+            ]
+          },
+          "notes": [
+            "Keep evidence, credentials, and populated configuration files outside the repository.",
+            "The GitHub workflow checks source files. It does not deploy resources or set tenant policies."
+          ]
+        }
+      ]
+    }
+  ],
+  "back_chapters": [
+    {
+      "title": "Terms and identity fields",
+      "sections": [
+        {
+          "title": "Use the correct identifier",
+          "table": {
+            "headers": ["Term", "Meaning in this kit"],
+            "rows": [
+              ["Agent runtime", "The process or service that executes the agent."],
+              ["Agent harness", "The code that controls model calls, tool calls, state, and execution limits."],
+              ["Agent blueprint", "The Entra application object used to create related agent identities."],
+              ["Blueprint appId", "The application identifier of the blueprint. This is not its object ID."],
+              ["Agent appId", "The application identifier of the agent identity."],
+              ["Agent object ID", "The directory object identifier used for object management and role assignment."],
+              ["Agent user", "A separate account used by supported agent-user experiences."],
+              ["Sponsor", "The accountable person assigned to the agent."],
+              ["Registry sync", "The import of agent records from a connected platform."],
+              ["Runtime telemetry", "Events or traces emitted during agent execution."],
+              ["Enforcement", "A control decision that permits or prevents a selected action."]
+            ]
+          },
+          "notes": [
+            "Record object IDs and application IDs in separate fields.",
+            "Do not substitute one identifier because both values use GUID format."
+          ]
+        },
+        {
+          "title": "Abbreviations",
+          "table": {
+            "headers": ["Abbreviation", "Term"],
+            "rows": [
+              ["SDK", "Software development kit."],
+              ["IaC", "Infrastructure as code."],
+              ["OBO", "On-behalf-of token flow."],
+              ["S2S", "Service-to-service authentication."],
+              ["MCP", "Model Context Protocol."],
+              ["OTel", "OpenTelemetry."],
+              ["DLP", "Data loss prevention."],
+              ["DSPM", "Data security posture management."],
+              ["CSPM", "Cloud security posture management."],
+              ["SIEM", "Security information and event management."],
+              ["MDE", "Microsoft Defender for Endpoint."],
+              ["MDCA", "Microsoft Defender for Cloud Apps."],
+              ["GSA", "Global Secure Access."],
+              ["RBAC", "Role-based access control."],
+              ["IRM", "Insider Risk Management."],
+              ["SCU", "Security compute unit."],
+              ["UTC", "Coordinated Universal Time."]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Run tests and record evidence",
+      "sections": [
+        {
+          "title": "Start an evidence store",
+          "steps": [
+            "Select an approved local evidence directory outside the repository.",
+            "Apply access controls to the directory.",
+            "Use a new directory for each approved execution scope.",
+            "Initialize the store with the complete catalogue.",
+            "Keep the catalogue unchanged for that execution."
+          ],
+          "code": "$Evidence = Join-Path $env:USERPROFILE 'Agent365-Evidence\\run-01'\npython -m poc_evidence init --catalogue .\\catalogue\\scenarios.json --evidence-dir $Evidence",
+          "notes": [
+            "The command does not create a product result.",
+            "The tool requires local atomic file operations. Do not use a network share as its working store."
+          ]
+        },
+        {
+          "title": "Execute one case",
+          "steps": [
+            "Select the case and confirm its prerequisites.",
+            "Record the agent alias and the actual identity in the protected evidence.",
+            "Capture the initial policy mode, scope, and resource state.",
+            "Run the positive phase and save the service decision.",
+            "Run the negative phase and save the service decision.",
+            "Check the actual action result after each phase.",
+            "Save sanitized artifacts under unique filenames in the evidence directory.",
+            "Record each phase with its correct evidence kind.",
+            "Restore the initial test state.",
+            "Ask the reviewer to compare the artifacts with the pass criteria."
+          ],
+          "notes": [
+            "Use one fixed agent alias for both phases of a case.",
+            "For a comparison case, use one fixed test-set alias and identify its members in the artifacts.",
+            "Do not overwrite a recorded artifact. Add a new artifact for a rerun."
+          ]
+        },
+        {
+          "title": "Record a result",
+          "paragraphs": [
+            "Replace CASE-ID with the actual catalogue ID.",
+            "Use PASS only after the artifact proves the stated criterion.",
+            "The example filenames are placeholders for actual sanitized product evidence."
+          ],
+          "code": "python -m poc_evidence record --evidence-dir $Evidence --scenario CASE-ID --agent CPS-01 --phase positive --result PASS --reason \"The approved action succeeded.\" --evidence-kind live_product --artifact positive.txt\npython -m poc_evidence record --evidence-dir $Evidence --scenario CASE-ID --agent CPS-01 --phase negative --result PASS --reason \"The protected action was denied.\" --evidence-kind live_product --artifact negative.txt",
+          "notes": [
+            "Use local_simulation for runtime unit tests or offline demonstrations.",
+            "The recorder stores operator assertions. The recorder cannot determine whether an artifact came from a live service.",
+            "File hashes detect later changes. They do not certify artifact authenticity."
+          ]
+        },
+        {
+          "title": "Record a blocked case",
+          "code": "python -m poc_evidence record --evidence-dir $Evidence --scenario CASE-ID --agent CPS-01 --phase positive --result BLOCKED --reason \"The required feature is absent.\" --evidence-kind live_product",
+          "notes": [
+            "Record the missing feature, licence, permission, connector, or fixture.",
+            "Do not use NOT_APPLICABLE to hide a failed requirement.",
+            "Record an approved exclusion only after the customer changes the scope."
+          ]
+        },
+        {
+          "title": "Review acceptance",
+          "code": "python -m poc_evidence verify --evidence-dir $Evidence --catalogue .\\catalogue\\scenarios.json\npython -m poc_evidence report --evidence-dir $Evidence --catalogue .\\catalogue\\scenarios.json --format text",
+          "notes": [
+            "Report exit code 1 means that original catalogue acceptance is not achieved.",
+            "Exit code 2 identifies an input, storage, concurrency, or integrity error.",
+            "Keep an approved archive of the evidence after review.",
+            "The recorder does not sign evidence or prevent an authorized writer from replacing the store."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Measure security value",
+      "sections": [
+        {
+          "title": "Measure elapsed time",
+          "steps": [
+            "Copy config\\measurement-template.json to the protected evidence location.",
+            "Use UTC timestamps for every start and end event.",
+            "Measure discovery time from agent creation to the correct inventory entry.",
+            "Measure revocation time from the approved block to a denied new request.",
+            "Measure alert time from the test action to the matching alert.",
+            "Measure investigation time from incident opening to confirmed identity and action.",
+            "Compare each measurement with the target approved before execution."
+          ],
+          "notes": [
+            "Some block modes do not generate an alert. Use the documented decision record instead.",
+            "A cached token can delay access removal. Record token acquisition time and the new-session result.",
+            "Separate product propagation time from operator time."
+          ]
+        },
+        {
+          "title": "Measure coverage",
+          "items": [
+            "Count inventoried agents against the known test inventory.",
+            "Count correctly attributed identities against the selected identity tests.",
+            "Count policy denials against attempted prohibited actions on supported paths.",
+            "Count benign actions incorrectly denied.",
+            "Count complete investigations with identity, owner, action, and affected resource.",
+            "Report unknown, unsupported, blocked, and not-run cases separately."
+          ],
+          "notes": [
+            "Do not compare different denominators without identifying the scope change.",
+            "Do not convert a preview result into a production availability claim."
+          ]
+        },
+        {
+          "title": "Issue the customer result",
+          "steps": [
+            "List the agreed scope and the actual agent instances.",
+            "List the product versions, licence state, cloud, and preview features.",
+            "Attach the acceptance report and the evidence index.",
+            "Record each coverage gap and failed criterion.",
+            "Record residual access, remaining resources, and ongoing costs.",
+            "Obtain the customer decision for each unresolved item."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Response and cleanup",
+      "sections": [
+        {
+          "title": "Contain a test agent",
+          "steps": [
+            "Identify the agent, identity, runtime, owner, and affected resource.",
+            "Preserve the current evidence before a destructive action.",
+            "Select the control that covers the actual execution path.",
+            "Block the Microsoft 365 entry point when that entry point is the target.",
+            "Disable or revoke the relevant identity access when that identity is the target.",
+            "Stop the dedicated runtime when continued execution is the target.",
+            "Apply the approved endpoint or provider control when execution occurs outside Microsoft 365.",
+            "Start a new request and confirm the selected action cannot occur."
+          ],
+          "notes": [
+            "A registry block is not a universal runtime stop.",
+            "An identity change does not revoke an unrelated provider API key.",
+            "A disconnected inventory connector does not delete the provider agent."
+          ]
+        },
+        {
+          "title": "Restore service settings",
+          "steps": [
+            "Restore each test policy to its recorded initial value.",
+            "Remove test assignments from users, devices, agents, and groups.",
+            "Remove test app installations and publication requests.",
+            "Revoke test consent and provider credentials that are no longer required.",
+            "Remove external platform connections after the evidence review.",
+            "Remove provider-side test agents through the provider procedure.",
+            "Remove test access packages and agent accounts where approved.",
+            "Remove endpoint test software only from the approved device.",
+            "Confirm that benign control actions work again."
+          ],
+          "notes": [
+            "Review shared credentials and shared application objects before deletion.",
+            "Some preview objects cannot be deleted through the documented interface.",
+            "Record each residual object and its owner instead of claiming full cleanup."
+          ]
+        },
+        {
+          "title": "Remove Azure resources",
+          "paragraphs": [
+            "Use scripts\\azure\\Remove-Lab.ps1 only for the dedicated tagged resource group.",
+            "Read infra-guide.txt before execution.",
+            "The script does not remove tenant identities, provider agents, or Microsoft 365 policies."
+          ],
+          "steps": [
+            "Compare the resource list with the approved deployment list.",
+            "Export approved evidence before resource deletion.",
+            "Run the cleanup script without its apply switch.",
+            "Inspect the exact deletion target and tag checks.",
+            "Obtain approval before the apply run.",
+            "Confirm that the approved resource IDs no longer exist.",
+            "Record the retained resource group and deployment history.",
+            "Review remaining usage and provider billing."
+          ]
+        },
+        {
+          "title": "Close the evidence record",
+          "steps": [
+            "Run the evidence integrity check.",
+            "Save the final acceptance report in the protected location.",
+            "Record unresolved risks and residual resources.",
+            "Apply the approved retention period to the evidence archive.",
+            "Remove working copies at the approved expiry time.",
+            "Keep credentials and raw tenant evidence out of the GitHub repository."
+          ]
+        }
+      ]
+    }
+  ]
+}

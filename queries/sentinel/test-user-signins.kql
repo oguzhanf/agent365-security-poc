@@ -1,0 +1,11 @@
+// Run in the Log Analytics workspace that receives Entra user sign-in logs.
+// A user sign-in is not proof that an agent identity performed the action.
+let TestUserObjectId = "REPLACE_WITH_TEST_USER_OBJECT_ID";
+let StartUtc = datetime(2026-09-18T00:00:00Z);
+let EndUtc = datetime(2026-09-18T01:00:00Z);
+SigninLogs
+| where TimeGenerated between (StartUtc .. EndUtc)
+| where UserId == TestUserObjectId
+| project TimeGenerated, UserId, AppId, AppDisplayName, ResourceDisplayName,
+    ConditionalAccessStatus, ResultType, ResultDescription, CorrelationId
+| order by TimeGenerated asc

@@ -1,0 +1,158 @@
+{
+  "sources": [
+    {
+      "id": "V01",
+      "title": "Microsoft Agent 365 Connected platforms",
+      "url": "https://learn.microsoft.com/en-us/microsoft-agent-365/admin/connected-platforms",
+      "retrieved": "2026-09-18",
+      "note": "Lists Bedrock and Claude Managed Agents. OpenAI is absent. Bedrock permissions include invocation and DeleteAgent."
+    },
+    {
+      "id": "V02",
+      "title": "AWS CloudFormation AWS::Bedrock::Agent reference",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-bedrock-agent.html",
+      "retrieved": "2026-09-18",
+      "note": "Verifies agent properties, automatic preparation, tags, safe deletion checks, and AgentId outputs."
+    },
+    {
+      "id": "V03",
+      "title": "Create a service role for Amazon Bedrock Agents",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-permissions.html",
+      "retrieved": "2026-09-18",
+      "note": "Verifies Bedrock service trust, source account/ARN conditions, InvokeModel, and omission of unused permissions."
+    },
+    {
+      "id": "V04",
+      "title": "Supported Regions for Amazon Bedrock Agents",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-supported.html",
+      "retrieved": "2026-09-18",
+      "note": "Requires customer verification of regional availability. Warns Agents Classic is unavailable to new customers."
+    },
+    {
+      "id": "V05",
+      "title": "Amazon Bedrock Agents Classic maintenance mode",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html",
+      "retrieved": "2026-09-18",
+      "note": "Agents Classic closed to new customers on July 30, 2026. AgentCore is a separate migration path."
+    },
+    {
+      "id": "V06",
+      "title": "AWS CLI create-change-set",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/cloudformation/create-change-set.html",
+      "retrieved": "2026-09-18",
+      "note": "Verifies CREATE/UPDATE change sets, local template input, parameters, tags, and CAPABILITY_IAM."
+    },
+    {
+      "id": "V07",
+      "title": "AWS CloudFormation DescribeChangeSet",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeChangeSet.html",
+      "retrieved": "2026-09-18",
+      "note": "Verifies Status, StatusReason, ExecutionStatus, stack identity, and tags. Response does not expose ChangeSetType."
+    },
+    {
+      "id": "V08",
+      "title": "Claude Managed Agents quickstart",
+      "url": "https://platform.claude.com/docs/en/managed-agents/quickstart",
+      "retrieved": "2026-09-18",
+      "note": "Verifies agent, environment, session, and event sequence, API origin, version header, and beta header."
+    },
+    {
+      "id": "V09",
+      "title": "Claude Managed Agents overview and beta access",
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "retrieved": "2026-09-18",
+      "note": "Managed Agents is stateful. It is not currently eligible for Zero Data Retention or HIPAA BAA coverage."
+    },
+    {
+      "id": "V10",
+      "title": "Claude API Create Agent",
+      "url": "https://platform.claude.com/docs/en/api/beta/agents/create",
+      "retrieved": "2026-09-18",
+      "note": "Verifies POST /v1/agents, model/system/tools fields, metadata, agent IDs, version, and workspace header."
+    },
+    {
+      "id": "V11",
+      "title": "Claude API Create Environment",
+      "url": "https://platform.claude.com/docs/en/api/beta/environments/create",
+      "retrieved": "2026-09-18",
+      "note": "Verifies cloud environments with limited networking, empty allowed_hosts, and disabled MCP/package-manager exceptions."
+    },
+    {
+      "id": "V12",
+      "title": "Claude Managed Agents Start a session",
+      "url": "https://platform.claude.com/docs/en/managed-agents/sessions",
+      "retrieved": "2026-09-18",
+      "note": "Verifies pinned agent version request, environment_id, idle creation, and explicit user events to start work."
+    },
+    {
+      "id": "V13",
+      "title": "Claude API Get Session",
+      "url": "https://platform.claude.com/docs/en/api/beta/sessions/retrieve",
+      "retrieved": "2026-09-18",
+      "note": "Verifies GET /v1/sessions/{session_id} and the resolved agent snapshot used before sending synthetic work."
+    },
+    {
+      "id": "V14",
+      "title": "Claude API Send Events",
+      "url": "https://platform.claude.com/docs/en/api/beta/sessions/events/send",
+      "retrieved": "2026-09-18",
+      "note": "Verifies POST events array, user.message text blocks, and data array containing accepted event IDs."
+    },
+    {
+      "id": "V15",
+      "title": "Claude API List Events",
+      "url": "https://platform.claude.com/docs/en/api/beta/sessions/events/list",
+      "retrieved": "2026-09-18",
+      "note": "Verifies GET events, order/limit/page pagination, next_page, session errors, and idle stop_reason objects."
+    },
+    {
+      "id": "V16",
+      "title": "Claude Managed Agents Session budgets",
+      "url": "https://platform.claude.com/docs/en/managed-agents/budgets",
+      "retrieved": "2026-09-18",
+      "note": "Budget amount uses whole US cents as strings. In-flight requests can exceed the configured list-cost budget."
+    },
+    {
+      "id": "V17",
+      "title": "Claude API Delete Session",
+      "url": "https://platform.claude.com/docs/en/api/beta/sessions/delete",
+      "retrieved": "2026-09-18",
+      "note": "Documents permanent DELETE /v1/sessions/{session_id} and session_deleted confirmation."
+    },
+    {
+      "id": "V18",
+      "title": "Claude API Delete Environment",
+      "url": "https://platform.claude.com/docs/en/api/beta/environments/delete",
+      "retrieved": "2026-09-18",
+      "note": "Documents DELETE /v1/environments/{environment_id} and environment_deleted confirmation."
+    },
+    {
+      "id": "V19",
+      "title": "Claude Managed Agents Define your agent",
+      "url": "https://platform.claude.com/docs/en/managed-agents/agent-setup",
+      "retrieved": "2026-09-18",
+      "note": "Agent archive is irreversible and preserves existing sessions. It is not permanent deletion."
+    },
+    {
+      "id": "V20",
+      "title": "Claude API Archive Agent",
+      "url": "https://platform.claude.com/docs/en/api/beta/agents/archive",
+      "retrieved": "2026-09-18",
+      "note": "Verifies POST /v1/agents/{agent_id}/archive and archived_at confirmation. No agent DELETE route was verified."
+    },
+    {
+      "id": "V21",
+      "title": "Claude API Get Workspace",
+      "url": "https://platform.claude.com/docs/en/api/beta/organization/workspaces/retrieve",
+      "retrieved": "2026-09-18",
+      "note": "Verifies wrkspc_ ID examples. This demo does not call organization administration APIs."
+    },
+    {
+      "id": "V22",
+      "title": "Claude API Get Environment",
+      "url": "https://platform.claude.com/docs/en/api/beta/environments/retrieve",
+      "retrieved": "2026-09-18",
+      "note": "Verifies GET /v1/environments/{environment_id}, cloud networking policy, package lists, archival state, and metadata checked before session creation."
+    }
+  ]
+}

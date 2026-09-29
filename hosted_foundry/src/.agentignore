@@ -1,0 +1,10 @@
+.env
+.env.*
+.azure/
+.venv*/
+__pycache__/
+*.pyc
+*.log
+*.jsonl
+*.zip
+*.whl

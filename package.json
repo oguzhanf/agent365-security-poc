@@ -1,0 +1,23 @@
+{
+  "name": "agent365-security-poc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agent 365 security proof of concept. Document build tools.",
+  "scripts": {
+    "prebuild:docs": "node tools/build-fixtures.cjs",
+    "build:fixtures": "node tools/build-fixtures.cjs",
+    "build:docs": "node tools/build-document.cjs",
+    "build:reference-pack": "node tools/build-reference-pack.cjs",
+    "site": "node site/server.cjs",
+    "site:open": "node site/server.cjs --open",
+    "test:docs": "node --test tests/document.test.cjs tests/release.test.cjs",
+    "test:site": "node --test tests/site/model.test.cjs tests/site/compute.test.cjs tests/site/store.test.cjs tests/site/server.test.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "docx": "9.7.1",
+    "jszip": "3.10.2"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "sources": [
+    {
+      "id": "A01",
+      "title": "Log Analytics workspace resource reference: 2023-09-01",
+      "url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/2023-09-01/workspaces",
+      "retrieved": "2026-09-18",
+      "note": "Stable ARM schema for the dedicated workspace, retention, quota and authentication settings. Local compilation does not confirm Azure quota or billing."
+    },
+    {
+      "id": "A02",
+      "title": "Application Insights component resource reference: 2020-02-02",
+      "url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components",
+      "retrieved": "2026-09-18",
+      "note": "Stable ARM schema for a workspace-based component and local authentication settings. This is Azure observability, not proof of Agent 365 integration."
+    },
+    {
+      "id": "A03",
+      "title": "Microsoft Sentinel onboarding state resource reference: 2024-03-01",
+      "url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.securityinsights/2024-03-01/onboardingstates",
+      "retrieved": "2026-09-18",
+      "note": "Stable workspace-scoped onboarding resource. The schema does not support ownership tags. Onboarding alone does not deploy connectors or analytic rules."
+    },
+    {
+      "id": "A04",
+      "title": "Azure AI Services account resource reference: 2024-10-01",
+      "url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts",
+      "retrieved": "2026-09-18",
+      "note": "Stable account schema for OpenAI kind, Entra-only authentication, custom subdomain and network ACLs. The lab uses default deny with explicit IPv4 approvals."
+    },
+    {
+      "id": "A05",
+      "title": "Azure OpenAI model deployment resource reference: 2024-10-01",
+      "url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.cognitiveservices/2024-10-01/accounts/deployments",
+      "retrieved": "2026-09-18",
+      "note": "Stable child-resource schema for tags, model name, model version, SKU, capacity and version upgrade behavior. The operator must verify regional availability and quota separately."
+    },
+    {
+      "id": "A06",
+      "title": "Azure built-in role: Cognitive Services OpenAI User",
+      "url": "https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/ai-machine-learning#cognitive-services-openai-user",
+      "retrieved": "2026-09-18",
+      "note": "Role reference for account-scoped model use. The lab assigns it only to an explicitly supplied human operator object ID. It does not create or represent an Entra Agent ID."
+    }
+  ]
+}

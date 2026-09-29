@@ -1,0 +1,557 @@
+{
+  "schema_version": 1,
+  "document": {
+    "title": "Agent 365 Security PoC",
+    "subtitle": "Deployment procedures, control tests, and evidence requirements",
+    "revision": "1.1 - 18 September 2026",
+    "source_file": "docs/Agent-365-Security-PoC.docx",
+    "runbook_file": "docs/Agent-365-Security-PoC.pdf",
+    "description": "Customer-facing definition of the Agent 365 Security PoC: what will be shown, how it is judged, and what runs live in the evaluation tenant."
+  },
+  "overview": {
+    "purpose": [
+      "This document is the customer-facing definition of the Agent 365 Security PoC: what will be shown, how it is judged, and what runs live in the evaluation tenant.",
+      "The full step-by-step procedures, scripts, and per-case test detail live in a separate reference pack and are cited by use-case ID.",
+      "The PoC runs entirely on trial licenses and trial service enablement. The agreed execution window is two weeks."
+    ],
+    "control_plane": "Agent 365 is an agent control plane. It integrates administration, identity, security, and compliance services. It does not replace hosting or orchestration.",
+    "presentation_lead": "This proof of concept tests Agent 365 controls against named test agents. It runs on trial licenses and trial service enablement in an agreed two-week window, with recorded positive and negative evidence for every live case.",
+    "modes": [
+      {
+        "id": "live",
+        "name": "Live-proofed",
+        "text": "Executed in the evaluation tenant with recorded positive and negative evidence, following the acceptance rules in the scope document."
+      },
+      {
+        "id": "demo",
+        "name": "Demonstration only",
+        "text": "Presented by the delivery team as a guided walkthrough or in a separate demonstration environment. These items were moved out of live proofing due to time constraints. They are not product limitations unless explicitly recorded as a coverage gap."
+      }
+    ],
+    "deferred_required": "Where the original test catalogue marked a demonstration-only case as required (ONB-03, ONB-05, ONB-07, ONB-10), acceptance for this two-week PoC is assessed against the live-proofed set. The deferred cases are shown as demonstrations and can be scheduled as a follow-up phase.",
+    "reference_pack": "Detailed procedures are maintained as guides (deployment and configuration, numbered in execution order) and test procedures (one per test case). The delivery team executes from the reference pack; the scope document is the contract for scope and acceptance."
+  },
+  "environment": [
+    "A dedicated evaluation tenant with trial licensing, named test users (u-allow, u-deny), test groups, and a dedicated Power Platform environment.",
+    "One onboarded Windows test device with Defender for Endpoint Plan 2, active Antivirus, and real-time protection, for local-agent discovery.",
+    "Synthetic fixtures only: public-procedure and restricted-record test files carrying the markers POC-APPROVAL-6142 and POC-RESTRICTED-4826. No customer data, production connectors, or production credentials at any point.",
+    "An optional isolated Azure lab (dedicated resource group, Log Analytics workspace, Application Insights, optional Sentinel onboarding and Azure OpenAI deployment), created only after explicit approval and removed by the guarded cleanup scripts at the end."
+  ],
+  "stop_conditions": [
+    "A test would touch a production identity, device, resource, or agent.",
+    "An agent reads real restricted data.",
+    "Policy scope differs from the approved scope.",
+    "A required licence, consent, or feature is absent.",
+    "The approved usage limit or end time is reached."
+  ],
+  "required_demonstrations": [
+    { "group": "Microsoft AI Platform", "instance": "CPS-01: Copilot Studio", "agent": "CPS-01", "proof": "Registration, identity, authenticated use, and supported controls.", "scope": "live", "cases": ["ONB-01"] },
+    { "group": "Microsoft AI Platform", "instance": "FDR-01: Foundry hosted agent", "agent": "FDR-01", "proof": "Hosting, publication, identity, and explicit Agent 365 telemetry.", "scope": "live", "cases": ["ONB-02", "ONB-09"] },
+    { "group": "Partner integrated", "instance": "SAS-01: entitled partner agent", "agent": "SAS-01", "proof": "Deployment, provider authorization, and actual interaction evidence.", "scope": "demo", "cases": ["ONB-03"] },
+    { "group": "SDK-enabled", "instance": "SDK-01: custom runtime", "agent": "SDK-01", "proof": "Model execution, explicit instrumentation, and service-side telemetry.", "scope": "live", "cases": ["ONB-04"] },
+    { "group": "Connected platform", "instance": "EXT-01: Amazon Bedrock", "agent": "EXT-01", "proof": "Provider inventory synchronization and supported management actions.", "scope": "demo", "cases": ["ONB-05", "ONB-10"] },
+    { "group": "Connected platform", "instance": "EXT-02: Claude Managed Agents", "agent": "EXT-02", "proof": "Preview workspace connection and inventory synchronization.", "scope": "demo", "cases": ["ONB-07"] },
+    { "group": "Connected platform", "instance": "OpenAI connector gap", "agent": "", "proof": "Record the unsupported connector request. Use a separate SDK demonstration.", "scope": "live", "cases": ["ONB-08"] },
+    { "group": "Shadow and local", "instance": "SHD-01: approved test device", "agent": "SHD-01", "proof": "Local discovery and separately configured endpoint controls.", "scope": "live", "cases": ["ONB-06"] }
+  ],
+  "acceptance": {
+    "rules": [
+      "Run both the positive phase and the negative phase for each case.",
+      "Record the actual service decision and the actual action result.",
+      "Keep policy mode, scope, identity, timestamps, and correlation evidence.",
+      "Report required and optional cases separately.",
+      "Report approved exclusions with their original and revised denominators.",
+      "Keep local simulation results separate from live product results.",
+      "Keep a blocked case in the original denominator."
+    ],
+    "cautions": [
+      "A screenshot of a configured policy does not prove enforcement.",
+      "A model refusal does not prove that a security service blocked the request.",
+      "An empty query result does not prove that the agent performed no action."
+    ],
+    "results": ["PASS", "FAIL", "BLOCKED", "NOT_RUN"],
+    "evidence": [
+      "Every live case runs a positive and a negative phase, records the actual service decision and action result, and is reviewed against its pass criteria.",
+      "Results use PASS, FAIL, BLOCKED, or NOT_RUN. A blocked case stays in the original denominator and is never re-labelled to pass.",
+      "Evidence is captured with the kit's local evidence recorder into a protected store outside the repository: UTC times, policy mode and scope, identities, correlation IDs, and artifact hashes for both phases of every case.",
+      "The final review issues the customer result with the agreed scope, product versions and preview states, the acceptance report, and every coverage gap listed explicitly."
+    ],
+    "demonstrations": "Demonstration-only items are recorded as demonstrations with date, audience, and what was shown. They do not enter the live acceptance denominator."
+  },
+  "cleanup": "At the end of the window: contain and retire the test agents, restore every changed policy to its recorded value, revoke test consents and provider credentials, remove test deployments, and remove the optional Azure lab through the guarded exact-ID removal plan (the resource group and deployment history are retained). Residual objects that cannot be deleted through supported interfaces are recorded with an owner rather than claimed removed.",
+  "live_areas": [
+    {
+      "id": "onb-studio", "group": "Agent onboarding", "title": "Copilot Studio agent",
+      "summary": "Create, register, and publish an authenticated Studio agent with synthetic knowledge. Verify draft and published registry identity, scoped audience deployment, and the authenticated-channel boundary.",
+      "guides": ["G08"], "cases": ["ONB-01", "ENTRA-07"]
+    },
+    {
+      "id": "onb-foundry", "group": "Agent onboarding", "title": "Foundry hosted agent with explicit telemetry",
+      "summary": "Deploy the bounded hosted sample in two phases: export off, then a single narrow observability grant (Agent365.Observability.OtelWrite) and export on. Prove publication, registry identity, one authorized synthetic invocation with a correlated Agent 365 trace, and the negative export-disabled run.",
+      "guides": ["G09", "G16", "G17", "G18", "G19", "G20"], "cases": ["ONB-02", "ONB-09"]
+    },
+    {
+      "id": "onb-sdk", "group": "Agent onboarding", "title": "SDK-enabled custom agent",
+      "summary": "Run the outbound-only Python harness against an approved Azure OpenAI deployment: blueprint and child Agent ID provisioning, registration-only CLI, explicit metadata-only export, and the negative permission test. This is the deepest identity chain in the PoC and anchors the Entra demonstrations.",
+      "guides": ["G21", "G22", "G23", "G24"], "cases": ["ONB-04"]
+    },
+    {
+      "id": "onb-local", "group": "Agent onboarding", "title": "Local agents: Codex CLI, Claude Code, OpenClaw",
+      "summary": "Install supported local agents on the test device, run harmless synthetic sessions, and verify Defender local-agent discovery (user, device, agent type, configured MCP metadata) plus the AgentsInfo hunting query. Discovery only; runtime blocking previews are demonstration-only.",
+      "guides": ["G14"], "cases": ["ONB-06", "MDE-01"]
+    },
+    {
+      "id": "onb-openai", "group": "Agent onboarding", "title": "OpenAI connector boundary",
+      "summary": "Record, against the live provider selector, that no native OpenAI Connected platforms connector exists as of the verification date, and show the supported alternative (the SDK-enabled path). This is a documented coverage gap, not a failed test.",
+      "guides": ["G13", "G28"], "cases": ["ONB-08"]
+    },
+    {
+      "id": "ctl-m365", "group": "Security controls", "title": "Microsoft 365 governance and lifecycle",
+      "summary": "Registry review, scoped distribution to the approved test group, reader-versus-administrator boundary, Foundry admin Block versus compute Stop, and retirement of an owned agent.",
+      "guides": ["G29"], "cases": ["M365-01", "M365-02", "M365-03", "M365-04"]
+    },
+    {
+      "id": "ctl-entra", "group": "Security controls", "title": "Entra Agent ID and Conditional Access",
+      "summary": "Map agent identities and permissions. Prove delegated (on-behalf-of) policy against the user, autonomous policy against the agent identity, least-privilege consent, identity disablement with measured token persistence, and the API-key boundary that Conditional Access cannot govern.",
+      "guides": ["G30"], "cases": ["ENTRA-01", "ENTRA-02", "ENTRA-04", "ENTRA-05", "ENTRA-06", "ENTRA-07"]
+    },
+    {
+      "id": "ctl-defender", "group": "Security controls", "title": "Defender security for AI",
+      "summary": "Connect Security for AI with the Microsoft 365 connector, verify agent inventory and posture for the live test agents, and distinguish assessed indicators from Not evaluated. Runtime audit/block fixtures are demonstration-only.",
+      "guides": ["G32"], "cases": ["DEF-01"]
+    },
+    {
+      "id": "ctl-mde", "group": "Security controls", "title": "Defender for Endpoint",
+      "summary": "Local-agent discovery evidence on the onboarded device, including the configured-MCP-versus-executed-tool boundary.",
+      "guides": ["G34"], "cases": ["MDE-01", "ONB-06"]
+    },
+    {
+      "id": "ctl-cloud", "group": "Security controls", "title": "Defender for Cloud and Defender for Cloud Apps",
+      "summary": "Separate cloud AI infrastructure posture from agent-level coverage on the lab subscription (DFC-01). Discover and block one unsanctioned test AI domain for the test device group and review OAuth app governance (MDCA-01, MDCA-02).",
+      "guides": ["G35", "G36"], "cases": ["DFC-01", "MDCA-01", "MDCA-02"]
+    },
+    {
+      "id": "ctl-purview", "group": "Security controls", "title": "Purview",
+      "summary": "Classify the synthetic restricted marker (PUR-04), prove Studio Word/PowerPoint label inheritance (PUR-05), restrict Studio SharePoint grounding with label-based DLP (PUR-06), and find the interaction in Purview Audit (PUR-10). Retention and eDiscovery verification (PUR-11, PUR-12) start live but their wait periods can complete after the window; instance-level DLP is demonstration-only.",
+      "guides": ["G33"], "cases": ["PUR-04", "PUR-05", "PUR-06", "PUR-10", "PUR-11", "PUR-12"]
+    },
+    {
+      "id": "ctl-sentinel", "group": "Security controls", "title": "Sentinel",
+      "summary": "Connect Agent 365 lake telemetry, Defender XDR incidents, and Entra sign-in/audit logs. Correlate the SDK agent's synthetic session in the lake and verify connector independence.",
+      "guides": ["G38"], "cases": ["SENT-01", "SENT-03", "SENT-04"]
+    },
+    {
+      "id": "ctl-copilot", "group": "Security controls", "title": "Security Copilot",
+      "summary": "Analyst verification workflow over one real PoC incident: summary fidelity, hunting-query validation against real schemas, and authorization boundaries.",
+      "guides": ["G39"], "cases": ["COP-01", "COP-02", "COP-03"]
+    },
+    {
+      "id": "ctl-response", "group": "Security controls", "title": "Response and cleanup",
+      "summary": "Contain the test agent on every mapped execution path, restore service without restoring prohibited access, and reconstruct the incident timeline separating configuration, decision, execution, and side effect.",
+      "guides": ["G43", "G44", "G45"], "cases": ["RSP-01", "RSP-02", "RSP-03"]
+    }
+  ],
+  "demo_items": [
+    { "id": "demo-zendesk", "title": "Partner SaaS agent, Zendesk", "cases": ["ONB-03"], "guides": ["G10"], "reason": "Depends on partner licensing and a vendor test workspace that cannot be provisioned inside the window." },
+    { "id": "demo-bedrock", "title": "Amazon Bedrock provider lab and Connected platforms sync", "cases": ["ONB-05", "ONB-10"], "guides": ["G11", "G25", "G26"], "reason": "Requires an eligible AWS account (Agents Classic closed to new customers), approved connector credentials including deletion authority, and the preview sync rollout." },
+    { "id": "demo-anthropic", "title": "Anthropic Claude Managed Agents sync", "cases": ["ONB-07"], "guides": ["G12", "G27"], "reason": "Provider APIs are beta and the Microsoft connection is preview; approval lead times exceed the window." },
+    { "id": "demo-frontier", "title": "Frontier and Foundry autopilot pathway", "cases": ["ENTRA-03"], "guides": ["G15"], "reason": "Preview enrollment, seat management, and sample drift gates." },
+    { "id": "demo-mcp", "title": "BYO MCP server approval and blocking", "cases": ["M365-05"], "guides": ["G29"], "reason": "Preview with a currently undeletable registration; shown as a walkthrough." },
+    { "id": "demo-runtime", "title": "Defender runtime protection previews", "cases": ["DEF-02", "DEF-03", "DEF-04", "DEF-05", "DEF-06", "DEF-07", "DEF-08", "MDE-02", "MDE-03", "MDE-04", "MDE-05"], "guides": ["G32", "G34"], "reason": "Audit/block fixtures on Foundry, Studio, and local agents require preview features and customer-approved detector fixtures; shown live in a demonstration environment instead." },
+    { "id": "demo-openclaw", "title": "OpenClaw whole-application blocking", "cases": ["MDE-06"], "guides": ["G14"], "reason": "Documented propagation is 15 minutes to eight hours and the action can affect all Intune-managed Windows devices; it is only safe in a disposable tenant." },
+    { "id": "demo-purview-instance", "title": "Purview instance-level protections", "cases": ["PUR-01", "PUR-02", "PUR-03", "PUR-07", "PUR-08", "PUR-09", "PUR-13"], "guides": ["G33"], "reason": "Depend on eligible Agent 365 instances, Frontier mailboxes, and retention processing periods." },
+    { "id": "demo-gsa", "title": "Global Secure Access network and prompt controls", "cases": ["GSA-01", "GSA-02", "GSA-03"], "guides": ["G37"], "reason": "Require TLS-inspection certificate deployment and routed-client setup on managed devices." },
+    { "id": "demo-sentinel-identities", "title": "Sentinel agent-identities preview connector", "cases": ["SENT-02"], "guides": ["G38"], "reason": "Preview connector. Deferred to a demonstration because of the two-week time constraint." }
+  ],
+  "unscheduled_cases": {
+    "ENTRA-08": "Optional catalogue case that the two-week scope document does not schedule. Add it only through an approved scope change.",
+    "DFC-02": "Optional catalogue case that the two-week scope document does not schedule. Add it only through an approved scope change."
+  },
+  "buckets": [
+    { "id": "B1", "label": "Days 1-2", "first_day": 1, "last_day": 2, "title": "Foundation and lab", "summary": "Trial activation checks, roles, test users and device, synthetic fixtures, kit installation, optional Azure lab plan and apply." },
+    { "id": "B2", "label": "Days 3-4", "first_day": 3, "last_day": 4, "title": "Copilot Studio and lifecycle", "summary": "Copilot Studio onboarding and lifecycle (ONB-01, M365-01 to M365-04). Start Defender discovery on the test device." },
+    { "id": "B3", "label": "Days 5-6", "first_day": 5, "last_day": 6, "title": "Foundry hosted agent and Defender", "summary": "Foundry hosted agent, two-phase deploy with telemetry (ONB-02, ONB-09). Defender Security for AI connection (DEF-01)." },
+    { "id": "B4", "label": "Days 7-8", "first_day": 7, "last_day": 8, "title": "SDK identity chain and Conditional Access", "summary": "SDK agent identity chain and export (ONB-04). Entra Conditional Access set (ENTRA-01, ENTRA-02, ENTRA-04 to ENTRA-07)." },
+    { "id": "B5", "label": "Day 9", "first_day": 9, "last_day": 9, "title": "Local agents, Cloud Apps, and Defender for Cloud", "summary": "Local agents discovery (ONB-06, MDE-01). Cloud Apps domain control (MDCA-01, MDCA-02). Defender for Cloud (DFC-01). OpenAI boundary (ONB-08)." },
+    { "id": "B6", "label": "Days 10-11", "first_day": 10, "last_day": 11, "title": "Purview and Sentinel", "summary": "Purview set (PUR-04 to PUR-06, PUR-10; start PUR-11, PUR-12). Sentinel connectors (SENT-01, SENT-03, SENT-04)." },
+    { "id": "B7", "label": "Day 12", "first_day": 12, "last_day": 12, "title": "Security Copilot and response", "summary": "Security Copilot workflow (COP-01 to COP-03). Response and containment (RSP-01 to RSP-03)." },
+    { "id": "BD", "label": "Demo build", "first_day": null, "last_day": null, "title": "Demonstration environment build", "summary": "Configuration for demonstration-only items. Prepare it in the demonstration tenant before the Days 13-14 walkthroughs." },
+    { "id": "B8", "label": "Days 13-14", "first_day": 13, "last_day": 14, "title": "Demonstrations, acceptance, and cleanup", "summary": "Demonstration-only walkthroughs, acceptance review with the customer, evidence close-out, and cleanup." }
+  ],
+  "live_case_buckets": {
+    "B2": ["ONB-01", "M365-01", "M365-02", "M365-03", "M365-04"],
+    "B3": ["ONB-02", "ONB-09", "DEF-01"],
+    "B4": ["ONB-04", "ENTRA-01", "ENTRA-02", "ENTRA-04", "ENTRA-05", "ENTRA-06", "ENTRA-07"],
+    "B5": ["ONB-06", "MDE-01", "MDCA-01", "MDCA-02", "DFC-01", "ONB-08"],
+    "B6": ["PUR-04", "PUR-05", "PUR-06", "PUR-10", "PUR-11", "PUR-12", "SENT-01", "SENT-03", "SENT-04"],
+    "B7": ["COP-01", "COP-02", "COP-03", "RSP-01", "RSP-02", "RSP-03"]
+  },
+  "case_guides": {
+    "ONB-01": ["G08"], "ONB-02": ["G09", "G16", "G17", "G18", "G19", "G20"], "ONB-03": ["G10"],
+    "ONB-04": ["G21", "G22", "G23", "G24"], "ONB-05": ["G11", "G25", "G26"], "ONB-06": ["G14", "G34"],
+    "ONB-07": ["G12", "G27"], "ONB-08": ["G13", "G28"], "ONB-09": ["G09", "G18", "G19", "G20", "G31"],
+    "ONB-10": ["G11", "G26"],
+    "M365-01": ["G29"], "M365-02": ["G29", "G09"], "M365-03": ["G29"], "M365-04": ["G29", "G08"], "M365-05": ["G29"],
+    "ENTRA-01": ["G30"], "ENTRA-02": ["G30"], "ENTRA-03": ["G15", "G30"], "ENTRA-04": ["G30"],
+    "ENTRA-05": ["G30", "G23"], "ENTRA-06": ["G30"], "ENTRA-07": ["G30", "G08"], "ENTRA-08": ["G30"],
+    "DEF-01": ["G32"], "DEF-02": ["G32"], "DEF-03": ["G32"], "DEF-04": ["G32"], "DEF-05": ["G32"],
+    "DEF-06": ["G32"], "DEF-07": ["G32"], "DEF-08": ["G32"],
+    "PUR-01": ["G33"], "PUR-02": ["G33"], "PUR-03": ["G33"], "PUR-04": ["G33"], "PUR-05": ["G33"],
+    "PUR-06": ["G33"], "PUR-07": ["G33"], "PUR-08": ["G33"], "PUR-09": ["G33"], "PUR-10": ["G33"],
+    "PUR-11": ["G33"], "PUR-12": ["G33"], "PUR-13": ["G33"],
+    "MDE-01": ["G34", "G14"], "MDE-02": ["G34"], "MDE-03": ["G34"], "MDE-04": ["G34"], "MDE-05": ["G34"],
+    "MDE-06": ["G14", "G34"],
+    "MDCA-01": ["G36"], "MDCA-02": ["G36"], "DFC-01": ["G35"], "DFC-02": ["G35"],
+    "GSA-01": ["G37"], "GSA-02": ["G37"], "GSA-03": ["G37"],
+    "SENT-01": ["G38", "G24"], "SENT-02": ["G38"], "SENT-03": ["G38"], "SENT-04": ["G38"],
+    "COP-01": ["G39"], "COP-02": ["G39"], "COP-03": ["G39"],
+    "RSP-01": ["G43"], "RSP-02": ["G43"], "RSP-03": ["G43", "G45"]
+  },
+  "guide_rules": {
+    "G01": { "scope": "live", "bucket": "B1", "area": "governance", "cases": [] },
+    "G02": { "scope": "live", "bucket": "B1", "area": "governance", "cases": [] },
+    "G03": { "scope": "live", "bucket": "B1", "area": "governance", "cases": [] },
+    "G04": { "scope": "live", "bucket": "B1", "area": "workstation", "cases": [] },
+    "G05": { "scope": "live", "bucket": "B1", "area": "azure", "cases": [] },
+    "G06": { "scope": "live", "bucket": "B1", "area": "azure", "cases": [] },
+    "G07": { "scope": "live", "bucket": "B1", "area": "azure", "cases": [] },
+    "G08": { "scope": "live", "bucket": "B2", "area": "copilot-studio", "cases": ["ONB-01", "ENTRA-07"] },
+    "G09": { "scope": "live", "bucket": "B3", "area": "foundry", "cases": ["ONB-02", "ONB-09"] },
+    "G10": { "scope": "demo", "bucket": "BD", "area": "partner", "cases": ["ONB-03"] },
+    "G11": { "scope": "demo", "bucket": "BD", "area": "aws", "cases": ["ONB-05", "ONB-10"] },
+    "G12": { "scope": "demo", "bucket": "BD", "area": "anthropic", "cases": ["ONB-07"] },
+    "G13": { "scope": "live", "bucket": "B5", "area": "m365-admin", "cases": ["ONB-08"] },
+    "G14": { "scope": "live", "bucket": "B5", "area": "workstation", "cases": ["ONB-06", "MDE-01"] },
+    "G15": { "scope": "demo", "bucket": "BD", "area": "foundry", "cases": ["ENTRA-03"] },
+    "G16": { "scope": "live", "bucket": "B3", "area": "foundry", "cases": ["ONB-02"] },
+    "G17": { "scope": "live", "bucket": "B3", "area": "foundry", "cases": ["ONB-09"] },
+    "G18": { "scope": "live", "bucket": "B3", "area": "foundry", "cases": ["ONB-02"] },
+    "G19": { "scope": "live", "bucket": "B3", "area": "entra", "cases": ["ONB-09"] },
+    "G20": { "scope": "live", "bucket": "B3", "area": "foundry", "cases": ["ONB-09"] },
+    "G21": { "scope": "live", "bucket": "B4", "area": "workstation", "cases": ["ONB-04"] },
+    "G22": { "scope": "live", "bucket": "B4", "area": "azure", "cases": ["ONB-04"] },
+    "G23": { "scope": "live", "bucket": "B4", "area": "entra", "cases": ["ONB-04"] },
+    "G24": { "scope": "live", "bucket": "B4", "area": "workstation", "cases": ["ONB-04"] },
+    "G25": { "scope": "demo", "bucket": "BD", "area": "workstation", "cases": ["ONB-05", "ONB-07"] },
+    "G26": { "scope": "demo", "bucket": "BD", "area": "aws", "cases": ["ONB-05", "ONB-10"] },
+    "G27": { "scope": "demo", "bucket": "BD", "area": "anthropic", "cases": ["ONB-07"] },
+    "G28": { "scope": "live", "bucket": "B5", "area": "governance", "cases": ["ONB-08"] },
+    "G29": { "scope": "live", "bucket": "B2", "area": "m365-admin", "cases": ["M365-01", "M365-02", "M365-03", "M365-04"] },
+    "G30": { "scope": "live", "bucket": "B4", "area": "entra", "cases": ["ENTRA-01", "ENTRA-02", "ENTRA-04", "ENTRA-05", "ENTRA-06", "ENTRA-07"] },
+    "G31": { "scope": "live", "bucket": "B3", "area": "m365-admin", "cases": ["ONB-09", "ONB-04"] },
+    "G32": { "scope": "live", "bucket": "B3", "area": "defender", "cases": ["DEF-01"] },
+    "G33": { "scope": "live", "bucket": "B6", "area": "purview", "cases": ["PUR-04", "PUR-05", "PUR-06", "PUR-10", "PUR-11", "PUR-12"] },
+    "G34": { "scope": "live", "bucket": "B5", "area": "defender", "cases": ["MDE-01", "ONB-06"] },
+    "G35": { "scope": "live", "bucket": "B5", "area": "defender-cloud", "cases": ["DFC-01"] },
+    "G36": { "scope": "live", "bucket": "B5", "area": "cloud-apps", "cases": ["MDCA-01", "MDCA-02"] },
+    "G37": { "scope": "demo", "bucket": "BD", "area": "entra-gsa", "cases": ["GSA-01", "GSA-02", "GSA-03"] },
+    "G38": { "scope": "live", "bucket": "B6", "area": "sentinel", "cases": ["SENT-01", "SENT-03", "SENT-04"] },
+    "G39": { "scope": "live", "bucket": "B7", "area": "security-copilot", "cases": ["COP-01", "COP-02", "COP-03"] },
+    "G40": { "scope": "live", "bucket": "B1", "area": "governance", "cases": [] },
+    "G41": { "scope": "live", "bucket": "B1", "area": "workstation", "cases": [] },
+    "G42": { "scope": "live", "bucket": "B8", "area": "governance", "cases": [] },
+    "G43": { "scope": "live", "bucket": "B7", "area": "governance", "cases": ["RSP-01", "RSP-02", "RSP-03"] },
+    "G44": { "scope": "live", "bucket": "B8", "area": "azure", "cases": [] },
+    "G45": { "scope": "live", "bucket": "B8", "area": "governance", "cases": ["RSP-03"] }
+  },
+  "section_rules": {
+    "G08.2": { "cases": ["ONB-01", "ENTRA-07"] },
+    "G08.5": { "bucket": "B8", "cases": ["ONB-01", "M365-04"] },
+    "G09.2": { "scope": "optional", "cases": ["ONB-02"] },
+    "G09.3": { "cases": ["ONB-09"] },
+    "G09.5": { "bucket": "B8", "cases": ["ONB-02"] },
+    "G11.2": { "cases": ["ONB-05"] },
+    "G11.3": { "cases": ["ONB-10"] },
+    "G14.6": { "scope": "demo", "bucket": "BD", "cases": ["MDE-06"] },
+    "G18.1": { "cases": ["ONB-02"] },
+    "G18.3": { "cases": ["ONB-02"] },
+    "G20.3": { "bucket": "B8", "cases": ["ONB-02"] },
+    "G23.8": { "scope": "optional", "cases": ["ONB-04"] },
+    "G24.4": { "cases": ["ONB-04", "SENT-01"] },
+    "G24.5": { "bucket": "B8", "cases": ["ONB-04"] },
+    "G29.1": { "cases": ["M365-01", "M365-03"] },
+    "G29.2": { "cases": ["M365-02", "M365-04"] },
+    "G29.3": { "scope": "demo", "bucket": "BD", "cases": ["M365-05"] },
+    "G30.1": { "cases": ["ENTRA-04", "ENTRA-05", "ENTRA-07"] },
+    "G30.2": { "cases": ["ENTRA-01", "ENTRA-02", "ENTRA-06"] },
+    "G30.3": { "scope": "demo", "bucket": "BD", "cases": ["ENTRA-03", "ENTRA-08"] },
+    "G32.2": { "scope": "demo", "bucket": "BD", "area": "power-platform", "cases": ["DEF-06"] },
+    "G32.3": { "scope": "demo", "bucket": "BD", "cases": ["DEF-02", "DEF-03", "DEF-04", "DEF-05", "DEF-07", "DEF-08"] },
+    "G33.1": { "cases": ["PUR-04", "PUR-05"] },
+    "G33.2": { "cases": ["PUR-06"] },
+    "G33.3": { "cases": ["PUR-10", "PUR-11", "PUR-12", "PUR-09"] },
+    "G33.4": { "scope": "demo", "bucket": "BD", "area": "foundry", "cases": ["PUR-13"] },
+    "G34.2": { "scope": "demo", "bucket": "BD", "area": "intune", "cases": ["MDE-02", "MDE-03"] },
+    "G34.3": { "scope": "demo", "bucket": "BD", "cases": ["MDE-02", "MDE-03"] },
+    "G34.4": { "scope": "demo", "bucket": "BD", "cases": ["MDE-04", "MDE-05", "MDE-06"] },
+    "G36.1": { "cases": ["MDCA-01"] },
+    "G36.2": { "cases": ["MDCA-02"] },
+    "G37.1": { "cases": ["GSA-02", "GSA-03"] },
+    "G37.2": { "cases": ["GSA-01", "GSA-02", "GSA-03"] },
+    "G38.1": { "cases": ["SENT-01"] },
+    "G38.2": { "cases": ["SENT-03"] },
+    "G38.3": { "cases": ["SENT-04"] },
+    "G43.1": { "cases": ["RSP-01"] },
+    "G43.2": { "cases": ["RSP-02"] },
+    "G43.3": { "bucket": "B8", "area": "azure", "cases": [] },
+    "G43.4": { "bucket": "B8", "cases": ["RSP-03"] }
+  },
+  "step_rules": [
+    { "section": "G02.1", "steps": "1-3", "bucket": "B1" },
+    { "section": "G02.1", "steps": "4-5", "bucket": "B5" },
+    { "section": "G02.1", "steps": "6", "bucket": "B4" },
+    { "section": "G02.1", "steps": "7", "bucket": "B5" },
+    { "section": "G02.1", "steps": "8", "bucket": "B6" },
+    { "section": "G02.1", "steps": "9-10", "bucket": "B7" },
+    { "section": "G02.1", "steps": "11-12", "bucket": "B8" },
+    { "section": "G33.1", "steps": "3-8", "scope": "demo", "bucket": "BD", "cases": ["PUR-01", "PUR-02", "PUR-03"] },
+    { "section": "G33.2", "steps": "2-7", "scope": "demo", "bucket": "BD", "cases": ["PUR-07", "PUR-08"] },
+    { "section": "G34.1", "steps": "1-3", "bucket": "B2" },
+    { "section": "G35.1", "steps": "8-10", "scope": "optional", "cases": ["DFC-02"] },
+    { "section": "G38.1", "steps": "7-9", "scope": "demo", "bucket": "BD", "cases": ["SENT-02"] }
+  ],
+  "extra_guides": [
+    {
+      "number": 45,
+      "title": "PoC close-out: acceptance review and customer result",
+      "origin": "Scope document revision 1.1: Evidence and acceptance, Demonstration-only scope, and Cleanup.",
+      "paragraphs": [
+        "This guide closes the two-week PoC. It applies the evidence, demonstration, and cleanup rules from the customer scope document.",
+        "Complete it on Days 13-14, after every dependent case and the final cleanup in guides 43 and 44."
+      ],
+      "sections": [
+        {
+          "title": "Review live acceptance with the customer",
+          "steps": [
+            "Confirm every live-proofed case has recorded positive and negative phases with evidence.",
+            "Run the evidence verify and report commands against the protected evidence store.",
+            "Review each live case against its pass criteria with the evidence reviewer.",
+            "Keep blocked cases in the original denominator. Record each reason and owner.",
+            "Record approved exclusions with their original and revised denominators."
+          ],
+          "notes": [
+            "Results use PASS, FAIL, BLOCKED, or NOT_RUN. A blocked case is never re-labelled to pass.",
+            "A screenshot of a configured policy does not prove enforcement."
+          ]
+        },
+        {
+          "title": "Record demonstration-only items",
+          "steps": [
+            "Record each demonstration with its date, audience, environment, and what was shown.",
+            "Keep demonstrations outside the live acceptance denominator.",
+            "Record customer interest in a follow-up live phase for each deferred item."
+          ],
+          "notes": [
+            "Deferrals are time decisions. Record a product limitation only as an explicit coverage gap."
+          ]
+        },
+        {
+          "title": "Issue the customer result",
+          "steps": [
+            "State the agreed scope, product versions, and preview states used during execution.",
+            "Attach the acceptance report. List every coverage gap explicitly.",
+            "Confirm cleanup completion. Record residual objects with an owner rather than claiming removal.",
+            "Share the final report and approved notes with the customer sponsor."
+          ],
+          "notes": [
+            "Share only notes marked for the customer. Keep internal notes and raw evidence in the protected store."
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "families": {
+      "copilot_studio": "Copilot Studio",
+      "foundry_hosted": "Foundry hosted",
+      "partner_integrated": "Partner integrated",
+      "sdk_enabled": "SDK-enabled",
+      "connected_bedrock": "Connected: Amazon Bedrock",
+      "connected_anthropic": "Connected: Anthropic",
+      "openai_boundary": "OpenAI boundary",
+      "shadow_local": "Shadow and local",
+      "cross_platform": "Cross-platform"
+    },
+    "layers": {
+      "onboarding": "Onboarding",
+      "observability": "Observability",
+      "m365_lifecycle": "Microsoft 365 lifecycle",
+      "entra_identity": "Entra identity",
+      "defender": "Defender for AI",
+      "purview": "Purview",
+      "defender_endpoint": "Defender for Endpoint",
+      "defender_cloud_apps": "Defender for Cloud Apps",
+      "defender_cloud": "Defender for Cloud",
+      "global_secure_access": "Global Secure Access",
+      "sentinel": "Sentinel",
+      "security_copilot": "Security Copilot",
+      "response": "Response"
+    },
+    "matrix_layers": {
+      "governance": "Microsoft 365",
+      "entra-ca": "Entra Conditional Access",
+      "observability": "Observability",
+      "defender-cloud-runtime": "Defender runtime",
+      "purview": "Purview",
+      "mde": "Defender for Endpoint",
+      "defender-for-cloud": "Defender for Cloud",
+      "mdca": "Defender for Cloud Apps",
+      "gsa": "Global Secure Access",
+      "sentinel": "Sentinel",
+      "security-copilot": "Security Copilot"
+    },
+    "family_to_matrix": {
+      "copilot_studio": ["copilot-studio"],
+      "foundry_hosted": ["foundry-hosted"],
+      "partner_integrated": ["partner-saas"],
+      "sdk_enabled": ["sdk-custom"],
+      "connected_bedrock": ["connected-bedrock"],
+      "connected_anthropic": ["connected-anthropic"],
+      "openai_boundary": ["external-openai"],
+      "shadow_local": ["shadow-local-codex-claude", "shadow-local-openclaw"],
+      "cross_platform": []
+    },
+    "layer_to_matrix": {
+      "onboarding": "governance",
+      "observability": "observability",
+      "m365_lifecycle": "governance",
+      "entra_identity": "entra-ca",
+      "defender": "defender-cloud-runtime",
+      "purview": "purview",
+      "defender_endpoint": "mde",
+      "defender_cloud_apps": "mdca",
+      "defender_cloud": "defender-for-cloud",
+      "global_secure_access": "gsa",
+      "sentinel": "sentinel",
+      "security_copilot": "security-copilot",
+      "response": ""
+    }
+  },
+  "family_agents": {
+    "copilot_studio": "CPS-01",
+    "foundry_hosted": "FDR-01",
+    "partner_integrated": "SAS-01",
+    "sdk_enabled": "SDK-01",
+    "connected_bedrock": "EXT-01",
+    "connected_anthropic": "EXT-02",
+    "openai_boundary": "",
+    "shadow_local": "SHD-01",
+    "cross_platform": ""
+  },
+  "areas": {
+    "governance": { "name": "Governance and approvals", "short": "GOV", "url": "" },
+    "workstation": { "name": "Operator workstation", "short": "CLI", "url": "" },
+    "m365-admin": { "name": "Microsoft 365 admin center", "short": "M365", "url": "https://admin.microsoft.com" },
+    "copilot-studio": { "name": "Copilot Studio", "short": "CPS", "url": "https://copilotstudio.microsoft.com" },
+    "power-platform": { "name": "Power Platform admin center", "short": "PPAC", "url": "https://admin.powerplatform.microsoft.com" },
+    "foundry": { "name": "Microsoft Foundry", "short": "FDRY", "url": "https://ai.azure.com" },
+    "entra": { "name": "Microsoft Entra admin center", "short": "ENTRA", "url": "https://entra.microsoft.com" },
+    "entra-gsa": { "name": "Global Secure Access", "short": "GSA", "url": "https://entra.microsoft.com" },
+    "intune": { "name": "Microsoft Intune admin center", "short": "INT", "url": "https://intune.microsoft.com" },
+    "defender": { "name": "Microsoft Defender portal", "short": "DEF", "url": "https://security.microsoft.com", "tenant_param": "tid" },
+    "cloud-apps": { "name": "Defender for Cloud Apps", "short": "MDCA", "url": "https://security.microsoft.com", "tenant_param": "tid" },
+    "defender-cloud": { "name": "Defender for Cloud", "short": "DFC", "url": "https://portal.azure.com", "tenant_hash": true },
+    "purview": { "name": "Microsoft Purview portal", "short": "PUR", "url": "https://purview.microsoft.com", "tenant_param": "tid" },
+    "sentinel": { "name": "Microsoft Sentinel", "short": "SENT", "url": "https://security.microsoft.com", "tenant_param": "tid" },
+    "security-copilot": { "name": "Security Copilot", "short": "SCU", "url": "https://securitycopilot.microsoft.com" },
+    "azure": { "name": "Azure portal", "short": "AZ", "url": "https://portal.azure.com", "tenant_hash": true },
+    "teams": { "name": "Microsoft Teams", "short": "TMS", "url": "https://teams.microsoft.com" },
+    "aws": { "name": "AWS console", "short": "AWS", "url": "https://console.aws.amazon.com" },
+    "anthropic": { "name": "Anthropic Console", "short": "ANT", "url": "https://console.anthropic.com" },
+    "partner": { "name": "Partner service", "short": "PTR", "url": "" }
+  },
+  "area_rules": [
+    { "area": "m365-admin", "pattern": "Microsoft 365 admin center|Billing > Licenses|\\bAgents > (All Agents|Tools|Settings|Shadow AI|Registry)" },
+    { "area": "power-platform", "pattern": "Power Platform admin center" },
+    { "area": "entra-gsa", "pattern": "Global Secure Access >|Global Secure Access admin" },
+    { "area": "entra", "pattern": "Entra admin center|Entra ID > |Conditional Access > " },
+    { "area": "intune", "pattern": "\\bIntune\\b" },
+    { "area": "sentinel", "pattern": "Microsoft Sentinel|\\bSentinel >|Content hub|Data connectors >" },
+    { "area": "security-copilot", "pattern": "Security Copilot" },
+    { "area": "cloud-apps", "pattern": "Cloud Apps >|Cloud Discovery" },
+    { "area": "defender-cloud", "pattern": "Defender for Cloud\\b(?! Apps)" },
+    { "area": "defender", "pattern": "Defender portal|\\bDefender >|Advanced Hunting|Windows Security >" },
+    { "area": "purview", "pattern": "\\bPurview >|Purview portal|Open Audit\\b|Activity Explorer" },
+    { "area": "foundry", "pattern": "\\bFoundry >|In Foundry\\b|Foundry portal|the Foundry Stop|\\bazd\\b" },
+    { "area": "copilot-studio", "pattern": "Open Copilot Studio|In Copilot Studio|Copilot Studio >" },
+    { "area": "azure", "pattern": "Azure portal" },
+    { "area": "teams", "pattern": "\\bTeams >|Teams and Microsoft 365 Copilot channel|\\bin Teams\\b" },
+    { "area": "aws", "pattern": "AWS console|AWS Management Console|CloudFormation console" },
+    { "area": "anthropic", "pattern": "Anthropic Console|Claude Console" }
+  ],
+  "inventory_types": [
+    { "id": "identities", "name": "Test identities and access" },
+    { "id": "devices", "name": "Devices" },
+    { "id": "environments", "name": "Environments and locations" },
+    { "id": "azure", "name": "Azure lab resources" },
+    { "id": "agents", "name": "Test agents" },
+    { "id": "agent-identities", "name": "Agent identities and credentials" },
+    { "id": "policies", "name": "Policies and settings" },
+    { "id": "connectors", "name": "Connectors and integrations" },
+    { "id": "fixtures", "name": "Synthetic content" },
+    { "id": "evidence", "name": "Evidence and records" }
+  ],
+  "inventory_template": [
+    { "id": "INV-U-ALLOW", "type": "identities", "name": "u-allow", "purpose": "Allowed test user. Licensed for Agent 365 and the tested services. Member of the approved test group.", "scope": "live", "guides": ["G03", "G08", "G29"], "cases": ["ONB-01", "M365-01"], "cleanup": "Remove test licences and group membership. Delete the account only if it is disposable." },
+    { "id": "INV-U-DENY", "type": "identities", "name": "u-deny", "purpose": "Excluded test user for negative phases. Not a member of the approved test group.", "scope": "live", "guides": ["G03", "G29", "G30"], "cases": ["M365-01", "ENTRA-01"], "cleanup": "Remove test licences and assignments. Delete the account only if it is disposable." },
+    { "id": "INV-G-TEST", "type": "identities", "name": "Approved test user group", "purpose": "Deployment and distribution scope for the test agents.", "scope": "live", "guides": ["G08", "G29"], "cases": ["ONB-01", "M365-01"], "cleanup": "Remove agent installations and assignments. Delete the group after its final use." },
+    { "id": "INV-ROLES", "type": "identities", "name": "Temporary operator role activations", "purpose": "AI Administrator, Conditional Access Administrator, Security Administrator, and other approved operator roles.", "scope": "live", "guides": ["G01", "G03"], "cases": [], "cleanup": "Remove temporary access after the final review." },
+    { "id": "INV-BREAKGLASS", "type": "identities", "name": "Emergency administrator accounts (excluded)", "purpose": "Record the emergency accounts that every test policy must exclude.", "scope": "live", "guides": ["G30"], "cases": ["ENTRA-01", "ENTRA-02"], "cleanup": "No change. Confirm they stayed outside every test policy." },
+    { "id": "INV-DEVICE-TEST", "type": "devices", "name": "Windows test device (Defender for Endpoint P2)", "purpose": "Onboarded device for local-agent discovery. Host for SHD-01 to SHD-03.", "scope": "live", "guides": ["G14", "G34"], "cases": ["ONB-06", "MDE-01"], "cleanup": "Remove PoC software and artifacts. Restore any changed protection setting." },
+    { "id": "INV-DEVICE-CONTROL", "type": "devices", "name": "Control device", "purpose": "Excluded device for the Cloud Apps block comparison.", "scope": "live", "guides": ["G36"], "cases": ["MDCA-01"], "cleanup": "Verify restored access after the tag is removed." },
+    { "id": "INV-G-DEVICES", "type": "devices", "name": "PoC device group", "purpose": "Device scope for the Cloud Apps scoped profile and Intune test assignments.", "scope": "live", "guides": ["G36", "G34"], "cases": ["MDCA-01"], "cleanup": "Remove the scoped profile and policy assignments. Delete the group after its final use." },
+    { "id": "INV-PP-ENV", "type": "environments", "name": "Dedicated Power Platform environment", "purpose": "Isolated Copilot Studio environment for CPS-01.", "scope": "live", "guides": ["G03", "G08"], "cases": ["ONB-01"], "cleanup": "Remove test agents and connections. Delete the environment if it is disposable." },
+    { "id": "INV-SP-LIB", "type": "environments", "name": "Dedicated SharePoint library", "purpose": "Holds the labelled synthetic files for grounding and label tests.", "scope": "live", "guides": ["G03", "G33"], "cases": ["PUR-04", "PUR-05", "PUR-06"], "cleanup": "Remove test sharing. Keep items under legal hold until release is approved." },
+    { "id": "INV-FOUNDRY-PROJECT", "type": "environments", "name": "Approved Foundry project", "purpose": "Existing approved project for the hosted agent.", "scope": "live", "guides": ["G09", "G18"], "cases": ["ONB-02"], "cleanup": "Remove only sample-owned resources." },
+    { "id": "INV-AZ-RG", "type": "azure", "name": "Dedicated Azure resource group", "purpose": "Isolated lab scope with the poc=agent365-security-poc tag.", "scope": "live", "guides": ["G06", "G07", "G44"], "cases": [], "cleanup": "Keep the group and deployment history. Remove resources through the exact-ID removal plan." },
+    { "id": "INV-AZ-LAW", "type": "azure", "name": "Log Analytics workspace", "purpose": "Lab workspace for telemetry and optional Sentinel onboarding.", "scope": "live", "guides": ["G07"], "cases": ["SENT-01"], "cleanup": "Remove through the guarded removal plan." },
+    { "id": "INV-AZ-APPI", "type": "azure", "name": "Application Insights", "purpose": "Workspace-based component for the lab.", "scope": "live", "guides": ["G07"], "cases": [], "cleanup": "Remove through the guarded removal plan." },
+    { "id": "INV-AZ-SENTINEL", "type": "azure", "name": "Sentinel onboarding (optional)", "purpose": "Sentinel on the lab workspace when approved.", "scope": "live", "guides": ["G07", "G38"], "cases": ["SENT-01", "SENT-03", "SENT-04"], "cleanup": "Disconnect PoC feeds. Remove with the lab workspace." },
+    { "id": "INV-AZ-AOAI", "type": "azure", "name": "Azure OpenAI account and model deployment", "purpose": "Bounded model for the SDK runtime (SDK-01).", "scope": "live", "guides": ["G07", "G22"], "cases": ["ONB-04"], "cleanup": "Remove through the guarded removal plan." },
+    { "id": "INV-AGENT-CPS01", "type": "agents", "name": "CPS-01: A365 Studio Guide", "purpose": "Authenticated Copilot Studio agent with synthetic knowledge.", "scope": "live", "guides": ["G08"], "cases": ["ONB-01", "M365-01", "M365-04", "PUR-04", "PUR-05", "PUR-06", "PUR-10"], "cleanup": "Remove the deployment and knowledge. Delete only the disposable agent after evidence collection." },
+    { "id": "INV-AGENT-FDR01", "type": "agents", "name": "FDR-01: Foundry hosted agent", "purpose": "Bounded hosted sample with explicit Agent 365 telemetry.", "scope": "live", "guides": ["G09", "G18", "G19", "G20"], "cases": ["ONB-02", "ONB-09", "M365-02"], "cleanup": "Clean up only sample-owned resources." },
+    { "id": "INV-AGENT-SDK01", "type": "agents", "name": "SDK-01: custom runtime", "purpose": "Outbound-only Python harness with explicit metadata-only export.", "scope": "live", "guides": ["G21", "G22", "G23", "G24"], "cases": ["ONB-04", "ENTRA-01", "ENTRA-02", "SENT-01"], "cleanup": "Remove the registration, grants, and separate resources." },
+    { "id": "INV-AGENT-SHD01", "type": "agents", "name": "SHD-01: Codex CLI", "purpose": "Local agent for discovery on the test device.", "scope": "live", "guides": ["G14"], "cases": ["ONB-06", "MDE-01"], "cleanup": "Remove only PoC software and synthetic files." },
+    { "id": "INV-AGENT-SHD02", "type": "agents", "name": "SHD-02: Claude Code", "purpose": "Local agent for discovery on the test device.", "scope": "live", "guides": ["G14"], "cases": ["ONB-06", "MDE-01"], "cleanup": "Remove only PoC software and synthetic files." },
+    { "id": "INV-AGENT-SHD03", "type": "agents", "name": "SHD-03: OpenClaw", "purpose": "Local agent without enterprise connections.", "scope": "live", "guides": ["G14"], "cases": ["ONB-06"], "cleanup": "Stop the gateway. Remove only PoC software and synthetic files." },
+    { "id": "INV-AGENT-SAS01", "type": "agents", "name": "SAS-01: Zendesk partner agent", "purpose": "Entitled partner-integrated agent.", "scope": "demo", "guides": ["G10"], "cases": ["ONB-03"], "cleanup": "Remove the installation and revoke consent." },
+    { "id": "INV-AGENT-EXT01", "type": "agents", "name": "EXT-01: Amazon Bedrock agent", "purpose": "Isolated inventory agent in the a365-bedrock-lab stack.", "scope": "demo", "guides": ["G11", "G26"], "cases": ["ONB-05", "ONB-10"], "cleanup": "Remove only the approved lab stack. Remove the connection after evidence review." },
+    { "id": "INV-AGENT-EXT02", "type": "agents", "name": "EXT-02: Claude Managed Agent", "purpose": "Synthetic agent in a dedicated provider workspace.", "scope": "demo", "guides": ["G12", "G27"], "cases": ["ONB-07"], "cleanup": "Archive or remove exact provider resources." },
+    { "id": "INV-ENTRA-BLUEPRINT", "type": "agent-identities", "name": "Dedicated agent blueprint", "purpose": "Blueprint for the SDK child identity. Owner and sponsor assigned.", "scope": "live", "guides": ["G23"], "cases": ["ONB-04"], "cleanup": "Remove grants and inheritance. Delete when approved." },
+    { "id": "INV-ENTRA-CHILD", "type": "agent-identities", "name": "Child agent identity", "purpose": "Outbound-only identity registered for SDK-01.", "scope": "live", "guides": ["G23"], "cases": ["ONB-04", "ENTRA-02", "ENTRA-06"], "cleanup": "Disable, then delete when approved." },
+    { "id": "INV-ENTRA-SECRET", "type": "agent-identities", "name": "Short-lived development secret", "purpose": "Blueprint credential kept in an approved secret manager.", "scope": "live", "guides": ["G23"], "cases": ["ONB-04"], "cleanup": "Revoke the secret. Delete the stored copy." },
+    { "id": "INV-ENTRA-OTELWRITE", "type": "agent-identities", "name": "Agent365.Observability.OtelWrite grant", "purpose": "Single narrow app role for explicit telemetry export.", "scope": "live", "guides": ["G19", "G23"], "cases": ["ONB-04", "ONB-09"], "cleanup": "Remove the app role assignment." },
+    { "id": "INV-CA-OBO", "type": "policies", "name": "Conditional Access: on-behalf-of test policy", "purpose": "Blocks the test human user for the downstream test resource.", "scope": "live", "guides": ["G30"], "cases": ["ENTRA-01"], "cleanup": "Disable and delete the test policy. Verify restored access." },
+    { "id": "INV-CA-AGENT", "type": "policies", "name": "Conditional Access: autonomous agent test policy", "purpose": "Blocks the disposable agent identity for the test resource.", "scope": "live", "guides": ["G30"], "cases": ["ENTRA-02"], "cleanup": "Disable and delete the test policy. Verify restored access." },
+    { "id": "INV-PUR-LABEL", "type": "policies", "name": "PoC sensitivity label and publication policy", "purpose": "Test-only label for the restricted synthetic record.", "scope": "live", "guides": ["G33"], "cases": ["PUR-04", "PUR-05"], "cleanup": "Remove the publication scope after evidence review." },
+    { "id": "INV-PUR-DLP", "type": "policies", "name": "DLP policy: Microsoft 365 Copilot location (label-based)", "purpose": "Restricts Studio SharePoint grounding for labelled content.", "scope": "live", "guides": ["G33"], "cases": ["PUR-06"], "cleanup": "Disable the policy or restore simulation mode." },
+    { "id": "INV-PUR-RETENTION", "type": "policies", "name": "Retention policy: Microsoft Copilot Experiences", "purpose": "Test retention for supported Studio interactions.", "scope": "live", "guides": ["G33"], "cases": ["PUR-11"], "cleanup": "Remove after checking competing retention requirements." },
+    { "id": "INV-PUR-EDISC", "type": "policies", "name": "eDiscovery test case and hold", "purpose": "Search supported interactions. Hold only test sources.", "scope": "live", "guides": ["G33"], "cases": ["PUR-12"], "cleanup": "Release holds only with legal approval." },
+    { "id": "INV-DEF-CONNECTOR", "type": "policies", "name": "Defender Security for AI: Microsoft 365 connector", "purpose": "Cloud security data for agent inventory and posture.", "scope": "live", "guides": ["G32"], "cases": ["DEF-01"], "cleanup": "Restore prompt-evidence settings. Do not disconnect shared operational connectors." },
+    { "id": "INV-MDCA-PROFILE", "type": "policies", "name": "Cloud Apps unsanctioned tag and scoped profile", "purpose": "Blocks one test AI domain for the PoC device group.", "scope": "live", "guides": ["G36"], "cases": ["MDCA-01"], "cleanup": "Remove the tag and profile. Verify restored access." },
+    { "id": "INV-DFC-PLANS", "type": "policies", "name": "Defender for Cloud plans on the PoC subscription", "purpose": "Defender CSPM and AI services threat protection.", "scope": "live", "guides": ["G35"], "cases": ["DFC-01"], "cleanup": "Restore PoC-only plans with subscription-owner approval." },
+    { "id": "INV-DEF-RULE", "type": "policies", "name": "Security for AI custom blocking rule", "purpose": "Audit and block comparison with a safe fixture.", "scope": "demo", "guides": ["G32"], "cases": ["DEF-04", "DEF-05"], "cleanup": "Disable the custom rule and restore the recorded state." },
+    { "id": "INV-STUDIO-RTP", "type": "policies", "name": "Studio real-time protection integration", "purpose": "Generative-orchestration protection for the test environment.", "scope": "demo", "guides": ["G32"], "cases": ["DEF-06"], "cleanup": "Disconnect only the PoC environment. Remove the unused federation application." },
+    { "id": "INV-MDE-AIAGENT", "type": "policies", "name": "AiAgentProtection setting (Audit, then Block)", "purpose": "Native runtime inspection on one test device.", "scope": "demo", "guides": ["G34"], "cases": ["MDE-02", "MDE-03"], "cleanup": "Restore the recorded mode through the authoritative policy." },
+    { "id": "INV-GSA-PROMPT", "type": "policies", "name": "Global Secure Access prompt policy", "purpose": "Scoped prompt and routed network controls.", "scope": "demo", "guides": ["G37"], "cases": ["GSA-01", "GSA-02", "GSA-03"], "cleanup": "Remove the scoped policy and client routing changes." },
+    { "id": "INV-MCP", "type": "policies", "name": "BYO MCP server registration", "purpose": "Preview approval and block of a synthetic MCP server.", "scope": "demo", "guides": ["G29"], "cases": ["M365-05"], "cleanup": "Registration cannot be deleted. Block it, remove assignments, and revoke credentials." },
+    { "id": "INV-SENT-A365", "type": "connectors", "name": "Sentinel Agent 365 connector (lake)", "purpose": "Agent 365 telemetry in the Sentinel data lake.", "scope": "live", "guides": ["G38"], "cases": ["SENT-01"], "cleanup": "Disconnect only the newly approved PoC feed." },
+    { "id": "INV-SENT-XDR", "type": "connectors", "name": "Sentinel Defender XDR connector", "purpose": "Incidents and selected events.", "scope": "live", "guides": ["G38"], "cases": ["SENT-03"], "cleanup": "Disconnect only the newly approved PoC feed." },
+    { "id": "INV-SENT-ENTRA", "type": "connectors", "name": "Sentinel Entra sign-in and audit connector", "purpose": "Token and audit investigation data.", "scope": "live", "guides": ["G38"], "cases": ["SENT-04"], "cleanup": "Disconnect only the newly approved PoC feed." },
+    { "id": "INV-SENT-AGENTID", "type": "connectors", "name": "Sentinel Agent identities connector (preview)", "purpose": "Identity and blueprint asset datasets.", "scope": "demo", "guides": ["G38"], "cases": ["SENT-02"], "cleanup": "Disconnect after the demonstration." },
+    { "id": "INV-FIX-PUBLIC", "type": "fixtures", "name": "public-procedure (TXT and DOCX)", "purpose": "Approved synthetic knowledge. Marker POC-APPROVAL-6142.", "scope": "live", "guides": ["G03", "G08"], "cases": ["ONB-01"], "cleanup": "Remove from test locations after evidence review." },
+    { "id": "INV-FIX-RESTRICTED", "type": "fixtures", "name": "restricted-record (TXT and DOCX)", "purpose": "Synthetic restricted record. Marker POC-RESTRICTED-4826.", "scope": "live", "guides": ["G03", "G33"], "cases": ["PUR-04", "PUR-06"], "cleanup": "Remove from test locations. Keep held copies until release is approved." },
+    { "id": "INV-FIX-UNTRUSTED", "type": "fixtures", "name": "untrusted-instruction (TXT)", "purpose": "Isolated prompt-injection test data only.", "scope": "live", "guides": ["G03"], "cases": [], "cleanup": "Remove from the isolated test location." },
+    { "id": "INV-EVIDENCE", "type": "evidence", "name": "Protected evidence store", "purpose": "Evidence recorder store outside the repository.", "scope": "live", "guides": ["G41", "G45"], "cases": [], "cleanup": "Retain for the approved retention period. Do not delete during PoC cleanup." }
+  ],
+  "inventory_statuses": {
+    "planned": "Planned",
+    "created": "Created",
+    "verified": "Verified",
+    "restored": "Restored",
+    "removed": "Removed",
+    "residual": "Residual (owner recorded)",
+    "pre-existing": "Pre-existing (retain)",
+    "not-needed": "Not needed"
+  }
+}

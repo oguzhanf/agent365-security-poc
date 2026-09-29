@@ -1,0 +1,300 @@
+Agent 365 evidence format, version 1
+
+Scope
+Use Python 3.9 or later. No external packages are required.
+Run commands from the repository root.
+The tool has no network access or telemetry.
+It records operator assertions. It does not run product tests.
+It does not verify the truth of a live_product label.
+Local hash checks do not prove product behavior or artifact authenticity.
+Keep the evidence root on a local filesystem with atomic file operations.
+Do not use a shared network drive.
+
+Storage
+Every command requires --evidence-dir.
+Use an absolute path outside this source repository.
+No implicit evidence directory is used.
+Init accepts a missing directory or an empty directory.
+Init never replaces an existing manifest or other evidence.
+Place sanitized artifacts in the evidence root after init.
+The tool reads artifact bytes to calculate hashes. It does not copy them.
+It stores only paths, hashes, sizes, supplied metadata, and acceptance metadata.
+It never collects tokens, credentials, prompt bodies, or user data automatically.
+Do not put secrets in aliases, reasons, correlation ids, or artifact names.
+Sanitize artifact contents before recording them.
+Do not edit or replace a recorded artifact. Use a new filename for each rerun.
+Keep all old artifacts. Verification checks the entire history.
+The tool does not sign the manifest.
+A writer with filesystem access can replace both hashes and artifacts.
+Use access controls and an independent immutable archive where needed.
+
+Command help
+python -m poc_evidence --help
+python -m poc_evidence init --help
+python -m poc_evidence record --help
+python -m poc_evidence report --help
+python -m poc_evidence verify --help
+
+Common options
+--evidence-dir PATH       Required absolute evidence root.
+--catalogue PATH          Required for init. Optional for other commands.
+--format text|json        Output format. Default: text.
+-h, --help                Show command help.
+
+Init
+python -m poc_evidence init --catalogue PATH --evidence-dir PATH [--format text|json]
+The store saves a frozen scenario index and a source catalogue hash.
+Only id, title, required, layer, and validation_kind enter the index.
+Other scenario fields are hashed but are not copied.
+Use --catalogue on later commands to check the current catalogue.
+Any catalogue content change requires a new evidence directory.
+Without --catalogue, commands use the frozen index.
+No scenario, result, or artifact is invented during init.
+
+Record a phase
+python -m poc_evidence record --evidence-dir PATH --scenario ID --agent ALIAS --phase PHASE --result STATUS --reason TEXT --evidence-kind KIND [--artifact RELATIVE_PATH ...] [--correlation-id ID] [--expected-revision N] [--catalogue PATH] [--format text|json]
+Repeat --artifact for each file.
+PHASE is positive, negative, or control.
+STATUS is NOT_RUN, PASS, FAIL, BLOCKED, or NOT_APPLICABLE.
+KIND is live_product or local_simulation. There is no default.
+--agent, --phase, --result, --reason, and --evidence-kind are required.
+The first record binds its scenario and evidence kind to one agent alias.
+Every later record for that pair must use the exact same alias.
+Aliases are case-sensitive. All phases and results use this rule.
+A conflicting alias fails before the manifest changes.
+Use a new evidence store to test another agent for the same pair.
+For a comparative test, choose one fixed test-set alias before the first record.
+For example, use comparison-set-01 for every phase in that comparison.
+Identify the compared agents in sanitized artifacts. Keep the test set fixed.
+PASS needs at least one existing nonempty artifact.
+Other results may have no artifacts.
+Each supplied artifact must exist and match its recorded hash on later reads.
+--expected-revision rejects a stale update. The initial revision is zero.
+A successful record command does not mean the scenario passed.
+
+Record an exclusion
+python -m poc_evidence record --evidence-dir PATH --scenario ID --exclude --reason TEXT --approved-by ALIAS --approved-date YYYY-MM-DD [--expected-revision N] [--catalogue PATH] [--format text|json]
+The approval date is a UTC calendar date.
+An exclusion needs a reason, approver alias, and approval date.
+An exclusion cannot include phase, agent, result, kind, correlation, or artifacts.
+Only one exclusion is permitted per scenario in a store.
+An exclusion is not evidence of a product pass.
+It changes only the agreed required denominator.
+The original required denominator and scenario statuses remain unchanged.
+Optional exclusions do not reduce the required denominator.
+Create a new store if the agreed scope changes again.
+
+Report and verify
+python -m poc_evidence report --evidence-dir PATH [--catalogue PATH] [--format text|json]
+python -m poc_evidence verify --evidence-dir PATH [--catalogue PATH] [--format text|json]
+Both commands check all artifact hashes before returning success.
+Report prints acceptance, kind counts, layer statuses, and scenario statuses.
+Verify checks only the local manifest and artifacts.
+Neither command runs product tests or certifies product behavior.
+Output goes to the console. No report file is created automatically.
+If you save a report, save it outside the source repository.
+
+Exit codes
+0: The command succeeded. For report, original catalogue acceptance was achieved.
+1: Report succeeded, but original catalogue acceptance was not achieved.
+2: Input, integrity, storage, or concurrency checks failed.
+A JSON operational error is {"error": string, "acceptance_achieved": false}.
+Argument parser errors use standard text help on stderr and exit code 2.
+
+Examples
+Use a dedicated external directory. Replace the example path for your system.
+A365-01 and A365-02 are illustrative IDs, not final catalogue IDs.
+Replace them with IDs from .\catalogue\scenarios.json before running commands.
+python -m poc_evidence init --catalogue .\catalogue\scenarios.json --evidence-dir D:\A365-Evidence\run-01
+Place a sanitized positive artifact at D:\A365-Evidence\run-01\positive.txt.
+Place a sanitized negative artifact at D:\A365-Evidence\run-01\negative.txt.
+python -m poc_evidence record --evidence-dir D:\A365-Evidence\run-01 --scenario A365-01 --agent agent-alias --phase positive --result PASS --reason "Expected access was allowed." --evidence-kind live_product --artifact positive.txt
+python -m poc_evidence record --evidence-dir D:\A365-Evidence\run-01 --scenario A365-01 --agent agent-alias --phase negative --result PASS --reason "Unauthorized access was denied." --evidence-kind live_product --artifact negative.txt
+python -m poc_evidence record --evidence-dir D:\A365-Evidence\run-01 --scenario A365-02 --agent agent-alias --phase positive --result BLOCKED --reason "The required license is unavailable." --evidence-kind live_product
+python -m poc_evidence record --evidence-dir D:\A365-Evidence\run-01 --scenario A365-02 --exclude --reason "This feature is outside the agreed scope." --approved-by reviewer-alias --approved-date 2026-09-18
+python -m poc_evidence verify --evidence-dir D:\A365-Evidence\run-01 --catalogue .\catalogue\scenarios.json --format json
+python -m poc_evidence report --evidence-dir D:\A365-Evidence\run-01 --catalogue .\catalogue\scenarios.json --format text
+python -m poc_evidence report --evidence-dir D:\A365-Evidence\run-01 --format json
+Use --evidence-kind local_simulation for local harness output.
+Never label local harness output as live_product.
+
+Acceptance rules
+Every catalogue scenario is reported, including scenarios with no records.
+No records means NOT_RUN.
+Every scenario defaults to validation_kind live_product.
+Only explicit validation_kind local_simulation allows harness evidence.
+Records from a different kind cannot satisfy the scenario.
+The latest appended record for each phase and kind controls that phase.
+All records for one scenario and evidence kind must use one agent alias.
+Mixed-agent manifests fail validation. Old records also enforce the binding.
+Different scenarios or evidence kinds may have different aliases.
+Both positive and negative must be PASS for a scenario to pass.
+A control phase is optional. Control PASS cannot replace a required phase.
+A control FAIL, BLOCKED, or NOT_APPLICABLE prevents a scenario pass.
+Control NOT_RUN does not add a requirement.
+Status precedence is FAIL, BLOCKED, NOT_APPLICABLE, NOT_RUN, PASS.
+Thus a missing required phase prevents PASS even if the other phase passed.
+All required scenarios must pass for original catalogue acceptance.
+BLOCKED, NOT_APPLICABLE, and NOT_RUN do not reduce that denominator.
+Optional scenarios are counted separately. They do not affect acceptance.
+Agreed acceptance excludes approved required exclusions from its denominator.
+A zero denominator never produces achieved=true.
+The report keeps live_product and local_simulation counts separate.
+A result record has result PASS or FAIL and a nonempty artifact.
+Without a live_product result record, the report states:
+No live product result exists.
+Explicit simulation-only scope can achieve catalogue acceptance.
+It cannot claim live product acceptance.
+
+Paths and updates
+Artifact paths are relative to the evidence root.
+The CLI accepts backslashes or slashes. Stored paths use slashes.
+Absolute paths, drive paths, UNC paths, dot segments, and parent segments fail.
+Empty segments, alternate streams, device names, and unsafe characters fail.
+Symlinks and Windows reparse points fail, even when their target is inside.
+Internal manifest, lock, and update files cannot be artifacts.
+Each artifact path must be unique in its record, ignoring case.
+The tool creates manifest.json and .poc-evidence.lock in the evidence root.
+Manifest writes use a flushed same-directory file and atomic publication.
+Exclusive lock creation serializes readers and writers.
+Busy operations fail explicitly. Retry after the active operation ends.
+The tool never steals or times out a lock.
+After a crash, confirm that no operation is active before removing a stale lock.
+An unexpected manifest change also aborts an update.
+Do not modify artifacts during any command.
+
+Exact input catalogue schema
+Encoding: UTF-8 JSON without a byte order mark. Maximum size: 16 MiB.
+Duplicate object keys, nonfinite numbers, and invalid Unicode fail.
+Top-level object:
+  schema_version: integer 1. Boolean true is not accepted.
+  scenarios: nonempty array of scenario objects.
+Additional top-level fields are permitted.
+Required scenario fields:
+  id: string matching ^[A-Z][A-Z0-9]*-[0-9]{2,3}$. Must be unique.
+  title: nonblank string, at most 4096 characters.
+  required: Boolean.
+Optional interpreted scenario fields:
+  layer: nonblank string, at most 128 characters. Default: "unspecified".
+  validation_kind: "live_product" or "local_simulation". Default: "live_product".
+Additional scenario fields are permitted.
+These fields need no special treatment by the evidence tool:
+family, priority, availability, prerequisites, setup, positive_steps,
+negative_steps, expected, evidence, pass_criteria, value, cleanup, sources.
+This subsystem does not infer acceptance from those fields.
+Minimal catalogue example with an illustrative ID:
+{"schema_version":1,"scenarios":[{"id":"A365-01","title":"Check access","required":true}]}
+
+Exact manifest schema
+All fields below are required unless marked optional.
+Unknown manifest, record, exclusion, and artifact fields fail.
+All strings must be valid Unicode. Text fields must not contain null characters.
+UTC timestamp: YYYY-MM-DDTHH:MM:SS[.ffffff]Z, with 1-6 optional fraction digits.
+Alias: 1-64 characters matching [A-Za-z0-9][A-Za-z0-9_.-]{0,63}.
+Hash: 64 lowercase hexadecimal SHA-256 characters.
+Nonnegative integer fields reject Booleans.
+Manifest object:
+  schema_version: integer 1.
+  created_at: UTC timestamp.
+  updated_at: UTC timestamp, not before created_at.
+  revision: nonnegative integer, equal to len(records) + len(exclusions).
+  catalogue: frozen catalogue index object, described below.
+  catalogue_sha256: hash of the canonical frozen catalogue index.
+  records: array of record objects, in append order.
+  exclusions: array of exclusion objects, in append order.
+Frozen catalogue index:
+  schema_version: integer 1.
+  source_sha256: hash of the canonical full input catalogue.
+  scenarios: nonempty array, sorted by id at init.
+Each frozen scenario has exactly:
+  id, title, required, layer, validation_kind, with the types stated above.
+Canonical hash input uses Python json.dumps with these options:
+  ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False.
+Append one LF character. Encode as UTF-8.
+JSON whitespace and object key order do not affect the source catalogue hash.
+Array order and all field values affect the source catalogue hash.
+Record object:
+  record_id: unique canonical lowercase UUID string.
+  recorded_at: UTC timestamp between created_at and updated_at.
+  scenario_id: id in the frozen catalogue.
+  agent_id: alias. Must match all records with the same scenario_id and evidence_kind.
+  phase: "positive", "negative", or "control".
+  result: "NOT_RUN", "PASS", "FAIL", "BLOCKED", or "NOT_APPLICABLE".
+  reason: nonblank string, at most 4096 characters.
+  evidence_kind: "live_product" or "local_simulation".
+  artifacts: array of artifact objects.
+  correlation_id: optional nonblank nonsecret string, at most 128 characters.
+The first record establishes the agent binding. The schema adds no binding field.
+The binding covers all historical records, phases, and results in this store.
+A fixed comparative test-set alias is allowed. Use a new store for a new agent or test set.
+Artifact object:
+  path: canonical relative path, at most 2048 characters.
+  sha256: hash of the exact file bytes.
+  size_bytes: nonnegative integer. PASS requires at least one size greater than zero.
+Exclusion object:
+  scenario_id: unique excluded id in the frozen catalogue.
+  reason: nonblank string, at most 4096 characters.
+  approved_by: alias.
+  approved_date: valid UTC calendar date in YYYY-MM-DD form.
+  recorded_at: UTC timestamp between created_at and updated_at.
+
+Exact JSON command output
+Init: {"initialized": true, "revision": 0}.
+Record: the appended record object or exclusion object.
+Verify:
+  valid: true.
+  revision: manifest revision.
+  records: record count.
+  artifact_references: artifact count across all records, including repeated references.
+  scope: local integrity scope description.
+Report:
+  schema_version: integer 1.
+  generated_at: UTC timestamp.
+  revision: manifest revision.
+  integrity: {valid: true, records: integer, artifact_references: integer}.
+  notice: string with the live product evidence notice.
+  acceptance: acceptance object, defined below.
+  by_evidence_kind: object with live_product and local_simulation group objects.
+  layers: object keyed by layer.
+  scenarios: array of scenario report objects.
+Summary object:
+  passed: integer.
+  denominator: integer.
+  status_counts: object with every STATUS as a key and an integer count.
+  status: aggregate STATUS, or null when the denominator is zero.
+  achieved: Boolean. True only for a nonzero denominator with every item PASS.
+Acceptance object:
+  achieved: original required summary's achieved value.
+  required: summary of all required scenarios.
+  agreed_required: summary of required scenarios without an exclusion.
+  optional: summary of optional scenarios. Not part of acceptance.
+  excluded_required: integer.
+  excluded_total: integer.
+Kind group object:
+  scenario_count: count of scenarios whose validation_kind equals this kind.
+  record_count: count of all records whose evidence_kind equals this kind.
+  result_record_count: count of PASS or FAIL records with a nonempty artifact.
+  required: summary of required scenarios whose validation_kind equals this kind.
+  optional: summary of optional scenarios whose validation_kind equals this kind.
+Layer object:
+  status: aggregate status of required scenarios in the layer, or null.
+  required: summary of required scenarios in the layer.
+  agreed_required: summary after excluding approved required scenarios.
+  optional: summary of optional scenarios in the layer.
+Scenario report object:
+  id, title, required, layer, validation_kind: frozen scenario fields.
+  status: aggregate status for the scenario's validation_kind.
+  evidence: object with live_product and local_simulation phase-summary objects.
+  exclusion: exclusion object, or null.
+Phase-summary object:
+  status: aggregate scenario STATUS for this kind.
+  phases: {positive: STATUS, negative: STATUS, control: STATUS}.
+  latest_record_ids: object with recorded phase names mapped to record UUIDs.
+
+Tests
+python -m unittest discover -s tests\evidence -v
+Fixtures are synthetic and use disposable directories under tests\evidence.
+The test source boundary is a synthetic directory, not the actual repository.
+Tests never read user data or contact a product endpoint.
+Actual symlink tests skip when the operating system denies symlink creation.
+Reparse-path rejection also has tests that need no symlink privilege.

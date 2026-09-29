@@ -1,0 +1,15 @@
+// Run in Microsoft Defender XDR advanced hunting.
+// Set the approved device name and UTC test window.
+// A process match is not proof of an Agent 365 identity.
+let TestDeviceName = "REPLACE_WITH_TEST_DEVICE_NAME";
+let StartUtc = datetime(2026-09-18T00:00:00Z);
+let EndUtc = datetime(2026-09-18T01:00:00Z);
+DeviceProcessEvents
+| where Timestamp between (StartUtc .. EndUtc)
+| where DeviceName =~ TestDeviceName
+| where FileName in~ ("codex.exe", "codex", "claude.exe", "claude", "openclaw.exe", "openclaw")
+    or (FileName in~ ("node.exe", "node", "python.exe", "python", "pwsh.exe", "powershell.exe")
+        and ProcessCommandLine has_any ("codex", "claude", "openclaw"))
+| project Timestamp, DeviceId, DeviceName, FileName, FolderPath, SHA1,
+    ProcessId, AccountUpn, InitiatingProcessFileName, ReportId
+| order by Timestamp asc

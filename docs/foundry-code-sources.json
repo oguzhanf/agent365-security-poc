@@ -1,0 +1,123 @@
+{
+  "sources": [
+    {
+      "id": "H01",
+      "title": "Deploy a hosted agent: handler, platform identity and injected variables",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/deploy-hosted-agent",
+      "retrieved": "2026-09-18",
+      "note": "Documents ResponsesAgentServerHost, the three-argument async response handler, dedicated agent identity and platform-injected Foundry variables. The desktop deployment identity is not the runtime agent identity."
+    },
+    {
+      "id": "H02",
+      "title": "Deploy a hosted agent from source code",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/deploy-hosted-agent-code",
+      "retrieved": "2026-09-18",
+      "note": "Documents python_3_13, main.py, requirements.txt, remote_build, existing project ID and code-deployment init flags. Use the sample's Responses 2.0.0 protocol, not the older 1.0.0 value in some REST examples."
+    },
+    {
+      "id": "H03",
+      "title": "Official Foundry Agent Framework sample at a fixed commit",
+      "url": "https://github.com/microsoft-foundry/foundry-samples/tree/e899cd1ac6b372532954d0d4c22c4abc461621db/samples/python/hosted-agents/agent-framework/responses/01-basic",
+      "retrieved": "2026-09-18",
+      "note": "Verified main.py, requirements.txt and azure.yaml. This sample has no pyproject.toml. It uses Agent, FoundryChatClient, DefaultAzureCredential and store=False. Our original handler and explicit telemetry wiring are not a copy of the sample."
+    },
+    {
+      "id": "H04",
+      "title": "Official Responses pyproject sample at the same commit",
+      "url": "https://github.com/microsoft-foundry/foundry-samples/blob/e899cd1ac6b372532954d0d4c22c4abc461621db/samples/python/hosted-agents/bring-your-own/responses/uv-pyproject/src/uv-pyproject-python-responses/pyproject.toml",
+      "retrieved": "2026-09-18",
+      "note": "Verified Python >=3.13, azure-ai-agentserver-responses==2.1.0 and azure-identity==1.25.3. Its older azure-ai-projects==2.0.1 is not used: the current FoundryChatClient requires >=2.2.0 and <2.7.0."
+    },
+    {
+      "id": "H05",
+      "title": "Agent 365 data-collection scope for hosted agents",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/configure-agent-365-data-collection",
+      "retrieved": "2026-09-18",
+      "note": "Hosted agents must package and configure the SDK. Explicit hosted SDK configuration overrides Foundry resource-level disablement. a365LoggingEnabled is not this sample's export kill switch."
+    },
+    {
+      "id": "H06",
+      "title": "Grant Agent 365 observability permissions",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/grant-agent-365-permissions",
+      "retrieved": "2026-09-18",
+      "note": "The deployed agentIdentityId is the principal object ID. Fixed appRoleId: 8f71190c-00c8-461d-a63b-f74abde9ba52. Our script strengthens the example by resolving the resource service principal by application ID and checking the role value, type and enabled state."
+    },
+    {
+      "id": "H07",
+      "title": "Microsoft OpenTelemetry Python 1.3.9 source",
+      "url": "https://github.com/microsoft/opentelemetry-distro-python/tree/8c874394b60549c5a6a351a0ef72a64659c9eafa",
+      "retrieved": "2026-09-18",
+      "note": "Verified InvokeAgentScope, ExecuteToolScope, Request, AgentDetails, explicit scope error capture, SDKStats switches and direct _Agent365Exporter constructor. The direct exporter is internal and is deliberately pinned; inspect it before upgrades. No legacy standalone observability package is used."
+    },
+    {
+      "id": "H08",
+      "title": "Published Microsoft OpenTelemetry package metadata",
+      "url": "https://pypi.org/pypi/microsoft-opentelemetry/1.3.9/json",
+      "retrieved": "2026-09-18",
+      "note": "Published version and dependency metadata checked. Requires OpenTelemetry SDK/API ~=1.44.0. No dependency installation or telemetry export was performed for this hosted sample."
+    },
+    {
+      "id": "H09",
+      "title": "Published Foundry Agent Framework package metadata",
+      "url": "https://pypi.org/pypi/agent-framework-foundry/1.13.0/json",
+      "retrieved": "2026-09-18",
+      "note": "Requires agent-framework-core >=1.17.0,<2, agent-framework-openai >=1.14.2,<2 and azure-ai-projects >=2.2.0,<2.7.0. The selected direct pins satisfy these ranges."
+    },
+    {
+      "id": "H10",
+      "title": "Published Responses protocol package metadata",
+      "url": "https://pypi.org/pypi/azure-ai-agentserver-responses/2.1.0/json",
+      "retrieved": "2026-09-18",
+      "note": "Requires azure-ai-agentserver-core >=2.1.0,<2.2.0. Source inspected at azure-ai-agentserver-responses_2.1.0."
+    },
+    {
+      "id": "H11",
+      "title": "Pinned Responses context API",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/azure-ai-agentserver-responses_2.1.0/sdk/agentserver/azure-ai-agentserver-responses/azure/ai/agentserver/responses/_response_context.py",
+      "retrieved": "2026-09-18",
+      "note": "Verified conversation_chain_id, platform_context.call_id, get_input_text and shutdown. The opaque call ID is forwarded to the model and is not parsed or exported as caller identity."
+    },
+    {
+      "id": "H12",
+      "title": "Pinned AgentServer host telemetry configuration",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/azure-ai-agentserver-core_2.1.0/sdk/agentserver/azure-ai-agentserver-core/azure/ai/agentserver/core/_base.py",
+      "retrieved": "2026-09-18",
+      "note": "configure_observability=None disables SDK-managed observability setup. Default behavior otherwise uses the injected Application Insights connection string. The accompanying _tracing.py documents api://9b975845-388f-4429-889e-eab1ef63949c/.default for hosted A365."
+    },
+    {
+      "id": "H13",
+      "title": "Agent Framework Python 1.18.0 source",
+      "url": "https://github.com/microsoft/agent-framework/tree/python-1.18.0/python/packages",
+      "retrieved": "2026-09-18",
+      "note": "Verified sticky disable_instrumentation, Agent async context lifecycle, agent.run client_kwargs, FoundryChatClient and OpenAI extra_headers/max_tokens mapping. The code awaits actual model execution; mocked tests do not prove model access."
+    },
+    {
+      "id": "H14",
+      "title": "Azure Identity DefaultAzureCredential",
+      "url": "https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential?view=azure-python",
+      "retrieved": "2026-09-18",
+      "note": "Credential exclusion flags prevent developer and environment-secret fallback. The hosted sample leaves only workload and managed identity paths. A hosted platform token must still pass explicit tenant, audience and appID consistency checks."
+    },
+    {
+      "id": "H15",
+      "title": "Pinned azd agent init help",
+      "url": "https://github.com/Azure/azure-dev/blob/10df66c39192b41a7983a6fd7794d749f7fece9d/cli/azd/extensions/azure.ai.agents/internal/cmd/testdata/TestAgentHelp-init.snap",
+      "retrieved": "2026-09-18",
+      "note": "Verified --manifest, --project-id, --model-deployment, --agent-name, --deploy-mode, --runtime and --entry-point. The same snapshot distinguishes an existing deployment from --model, which can create a new model. azd is not installed locally; this is upstream help-source verification, not an executed CLI validation."
+    },
+    {
+      "id": "H16",
+      "title": "Pinned azd provision and deploy help",
+      "url": "https://github.com/Azure/azure-dev/tree/10df66c39192b41a7983a6fd7794d749f7fece9d/cli/azd/cmd/testdata",
+      "retrieved": "2026-09-18",
+      "note": "Verified TestUsage-azd-provision.snap (--preview) and TestUsage-azd-deploy.snap (positional service name). Agent show help at the same commit supports a service name and --output json."
+    },
+    {
+      "id": "H17",
+      "title": "Pinned Foundry manifest schema implementation and substitution",
+      "url": "https://github.com/Azure/azure-dev/blob/10df66c39192b41a7983a6fd7794d749f7fece9d/cli/azd/extensions/azure.ai.agents/internal/project/config.go",
+      "retrieved": "2026-09-18",
+      "note": "An azure.ai.project endpoint selects an existing project. No deployments block is included. cli/azd/pkg/foundry/templating.go at the same commit verifies ${VAR:-default} syntax. Manifest shape was source-checked; no Azure service-side schema validation was performed."
+    }
+  ]
+}

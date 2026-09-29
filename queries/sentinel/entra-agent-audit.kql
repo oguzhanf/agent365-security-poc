@@ -1,0 +1,12 @@
+// Run in the Log Analytics workspace that receives Entra audit logs.
+// Set the exact target object ID. Resolve the ID in Entra before the test.
+let TargetObjectId = "REPLACE_WITH_TARGET_OBJECT_ID";
+let StartUtc = datetime(2026-09-18T00:00:00Z);
+let EndUtc = datetime(2026-09-18T01:00:00Z);
+AuditLogs
+| where TimeGenerated between (StartUtc .. EndUtc)
+| mv-expand TargetResource = TargetResources
+| where tostring(TargetResource.id) == TargetObjectId
+| project TimeGenerated, OperationName, Category, Result, CorrelationId,
+    TargetId = tostring(TargetResource.id), TargetType = tostring(TargetResource.type)
+| order by TimeGenerated asc

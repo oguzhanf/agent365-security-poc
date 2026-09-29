@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "measurements": [
+    {
+      "metric": "discovery_minutes",
+      "start_event": "The operator publishes or starts the test agent.",
+      "end_event": "The operator captures the correct inventory entry.",
+      "start_utc": null,
+      "end_utc": null,
+      "target_minutes": null,
+      "measured_minutes": null,
+      "evidence_paths": []
+    },
+    {
+      "metric": "revocation_minutes",
+      "start_event": "The operator confirms the test block or credential revocation.",
+      "end_event": "A new session cannot perform the selected protected action.",
+      "start_utc": null,
+      "end_utc": null,
+      "target_minutes": null,
+      "measured_minutes": null,
+      "evidence_paths": []
+    },
+    {
+      "metric": "alert_minutes",
+      "start_event": "The operator performs the approved synthetic test.",
+      "end_event": "The security service creates the matching alert.",
+      "start_utc": null,
+      "end_utc": null,
+      "target_minutes": null,
+      "measured_minutes": null,
+      "evidence_paths": []
+    },
+    {
+      "metric": "investigation_minutes",
+      "start_event": "The analyst opens the test alert.",
+      "end_event": "The analyst identifies the agent, owner, action, and affected test resource.",
+      "start_utc": null,
+      "end_utc": null,
+      "target_minutes": null,
+      "measured_minutes": null,
+      "evidence_paths": []
+    }
+  ]
+}

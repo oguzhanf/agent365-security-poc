@@ -1,0 +1,17 @@
+// Copy the exact behavior ID from the approved test record.
+// These preview tables require the relevant service and data connection.
+let TestBehaviorId = "REPLACE_WITH_BEHAVIOR_ID";
+let StartUtc = datetime(2026-09-18T00:00:00Z);
+let EndUtc = datetime(2026-09-18T01:00:00Z);
+BehaviorInfo
+| where Timestamp between (StartUtc .. EndUtc)
+| where BehaviorId == TestBehaviorId
+| project Timestamp, BehaviorId, Title, ServiceSource, DetectionSource, ActionType
+| join kind=leftouter (
+    BehaviorEntities
+    | where Timestamp between (StartUtc .. EndUtc)
+    | where BehaviorId == TestBehaviorId
+    | project BehaviorId, EntityType, EntityRole, AccountObjectId, DeviceId, CloudResourceId
+) on BehaviorId
+| project-away BehaviorId1
+| order by Timestamp asc

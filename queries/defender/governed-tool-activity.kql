@@ -1,0 +1,11 @@
+// Select the identity actually recorded for the test gateway invocation.
+// Do not assume that the recorded identity is the autonomous agent.
+let TestAccountObjectId = "REPLACE_WITH_RECORDED_TEST_ACCOUNT_OBJECT_ID";
+let StartUtc = datetime(2026-09-18T00:00:00Z);
+let EndUtc = datetime(2026-09-18T01:00:00Z);
+CloudAppEvents
+| where Timestamp between (StartUtc .. EndUtc)
+| where ActionType == "ExecuteToolByGateway"
+| where AccountObjectId =~ TestAccountObjectId
+| project Timestamp, ActionType, Application, AccountObjectId, ObjectId, ObjectType, ReportId
+| order by Timestamp asc

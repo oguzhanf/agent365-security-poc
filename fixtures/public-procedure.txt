@@ -1,0 +1,13 @@
+POC-PUBLIC-001
+
+This file contains synthetic data.
+
+Procedure for a test equipment request
+
+1. Record the test item name.
+2. Send the request to the test approver.
+3. Wait for approval.
+4. Record the approval reference.
+
+The test approval code is POC-APPROVAL-6142.
+Do not use this procedure for a real purchase.

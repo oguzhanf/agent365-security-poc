@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-09-18",
+  "availabilityDateMeaning": "Evidence snapshot date, not a release date. Preview does not imply tenant rollout.",
+  "productCommercialGaDate": "2026-05-01",
+  "evidenceStatus": "Documentation-derived support assessment. No tenant tests or case results.",
+  "states": {
+    "supported": "The named capability is documented within the stated boundary.",
+    "conditional": "The named integration, identity, license, policy, or traffic path must be demonstrated.",
+    "preview": "The named capability is documented as preview or Frontier. Separate approval is required.",
+    "not-established": "The reviewed sources do not establish this capability for the named family.",
+    "not-supported": "Documentation explicitly excludes the named path.",
+    "not-applicable": "The control does not operate on this family in the stated deployment."
+  },
+  "controlLayers": [
+    "governance",
+    "entra-ca",
+    "observability",
+    "defender-cloud-runtime",
+    "purview",
+    "mde",
+    "defender-for-cloud",
+    "mdca",
+    "gsa",
+    "sentinel",
+    "security-copilot"
+  ],
+  "globalPrerequisites": [
+    "Approved synthetic-only tenant, users, identities, environments, devices, resources, and providers.",
+    "Qualified product subscriptions, assigned user licenses, minimum operator roles, and approved consent.",
+    "Product-specific geography, retention, content collection, and cost approval.",
+    "Separate preview approval and verified tenant rollout.",
+    "No inventory entry is proof of runtime telemetry, inspection, or blocking."
+  ],
+  "families": [
+    {
+      "id": "copilot-studio",
+      "name": "Copilot Studio agents",
+      "controls": [
+        {"layer":"governance","state":"supported","prerequisites":["AI Administrator","Approved Studio environment and deployment group"],"enforcementBoundary":"Native registry and supported distribution/lifecycle actions. Draft visibility is documented. Data & tools is metadata.","sourceIds":["CM1","CM2","CM3","CX01"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"conditional","prerequisites":["Verify actual Agent ID or older application identity","Entra P1/P2 and Agent 365","Flow-specific policy"],"enforcementBoundary":"OBO targets the human user; application flow targets the agent. API keys remain outside CA.","sourceIds":["CE1","CE2","CX07"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"conditional","prerequisites":["Agent 365 activation","Authenticated single-tenant session","Agent name at most 42 characters"],"enforcementBoundary":"Built-in telemetry; no SDK requirement. Anonymous/multitenant sessions are excluded. Exact Activity UI requires verification.","sourceIds":["CX12","CX03","CI4"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"preview","prerequisites":["Security for AI and Microsoft 365 connector","Generative orchestration","Per-environment external-protection connection"],"enforcementBoundary":"Native tool-invocation inspection; classic agents skip this detector. Default audit; scoped custom block. Block evidence need not include an alert.","sourceIds":["CD1","CD3","CD5"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"conditional","prerequisites":["Purview entitlement and policy role","Supported source/channel","PAYG for supported non-Microsoft channel interactions"],"enforcementBoundary":"SharePoint/Dataverse labels; encryption only for SharePoint. Label-based DLP restricts supported SharePoint grounding. Word/PowerPoint inheritance is type-specific.","sourceIds":["CU2","CX13"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"not-applicable","prerequisites":["Separate onboarded endpoint for browser/process evidence if required"],"enforcementBoundary":"Local-agent runtime inspection does not instrument the hosted Studio runtime.","sourceIds":["CP1","CP2"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"not-established","prerequisites":["Separately owned supported Azure infrastructure, if any"],"enforcementBoundary":"Studio SaaS agent security belongs to Agent 365. Separate Azure resource posture does not establish Studio runtime protection.","sourceIds":["CD4","CC1"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Microsoft 365 connector","Cloud Apps and Endpoint prerequisites for domain tests"],"enforcementBoundary":"Cloud activity or routed app/domain evidence. Domain blocking is not a Studio prompt/tool decision.","sourceIds":["CD1","CA1","CA2"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"conditional","prerequisites":["Internet Access entitlement","Power Platform environment forwarding","Approved baseline profile"],"enforcementBoundary":"Forwarded HTTP nodes, custom connectors, and MCP connectors. Baseline security rules have tenant-level effect.","sourceIds":["CN1"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["Agent 365 lake connector","Separate XDR and Entra connectors for required evidence"],"enforcementBoundary":"Ingested agent telemetry, incidents, and identity records. No undocumented Log Analytics table is assumed.","sourceIds":["CS1","CS3","CX08","CX14"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Available capacity","Authorized ingested evidence","Analyst review"],"enforcementBoundary":"Summaries and hunting assistance over existing evidence. Defender Chat is preview; no independent sensor.","sourceIds":["CK1","CK2"],"availabilityDate":"2026-09-18"}
+      ]
+    },
+    {
+      "id": "foundry-hosted",
+      "name": "Microsoft Foundry hosted agents",
+      "controls": [
+        {"layer":"governance","state":"conditional","prerequisites":["Published agent","Foundry and Microsoft 365 permissions"],"enforcementBoundary":"Published registry entry. Block affects Copilot Chat availability; Stop controls deployment compute. Drafts are not required inventory.","sourceIds":["CM1","CM3","CX04"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"conditional","prerequisites":["Actual published agent identity","Approved Entra resource flow","Entra P1/P2 and Agent 365"],"enforcementBoundary":"Project identity and agent identity differ. Target the token subject and resource. API keys remain outside CA.","sourceIds":["CE2","CE4","CX07"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"conditional","prerequisites":["Explicit hosted Agent 365 SDK observability configuration","Agent365.Observability.OtelWrite app role","Agent 365 consent"],"enforcementBoundary":"Hosting and Application Insights do not prove Agent 365 export. SDK configuration can override resource logging disablement.","sourceIds":["CX04","CX05","CX06"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"preview","prerequisites":["Published Foundry agent for cloud detection","Required observability","Security for AI and scoped rule"],"enforcementBoundary":"Native preview evaluates requests, responses, tool calls, and tool responses. BYO MCP Foundry path is separately unsupported. Behavior proves block.","sourceIds":["CD1","CD2","CD3","CM4"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"conditional","prerequisites":["Foundry Account Owner","Current Foundry Purview integration","Documented managed inference user context","Approved billing"],"enforcementBoundary":"Policy enforcement is limited to documented /chat/completions user-context interactions. Other authentication gets audit/classification. No network isolation.","sourceIds":["CU3","CC2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"not-applicable","prerequisites":["Separate supported local agent if testing an endpoint"],"enforcementBoundary":"Managed Foundry hosting is not an onboarded local-agent endpoint. Endpoint evidence does not validate hosted runtime controls.","sourceIds":["CP1","CP2"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"conditional","prerequisites":["Approved Azure plans and roles","Supported Foundry resources/model endpoints"],"enforcementBoundary":"Infrastructure posture and model threats remain covered by their plans. Agent-level capabilities require Agent 365 from 2026-07-01.","sourceIds":["CC1","CC2","CD4"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Relevant connector or endpoint network data","Approved domain scope"],"enforcementBoundary":"Resource/app activity and domain access only. No universal hosted tool inspection from Cloud Discovery.","sourceIds":["CA1","CA2","CD4"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"not-established","prerequisites":["Separately demonstrated supported traffic-routing path"],"enforcementBoundary":"Studio environment forwarding does not establish Foundry-hosted forwarding. Endpoint JSON prompt protection is a different path.","sourceIds":["CN1","CN2"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["Actual Agent 365 telemetry export","Lake connector","XDR and Entra feeds as needed"],"enforcementBoundary":"Receives configured telemetry, incidents, and logs. Foundry hosting alone supplies none of this proof.","sourceIds":["CS1","CS3","CX05","CX08"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Available capacity","Authorized actual incident or telemetry"],"enforcementBoundary":"Analyst assistance over available evidence. Cannot reconstruct omitted SDK content as fact.","sourceIds":["CK1","CK2","CI3"],"availabilityDate":"2026-09-18"}
+      ]
+    },
+    {
+      "id": "partner-saas",
+      "name": "Preintegrated partner SaaS agents",
+      "controls": [
+        {"layer":"governance","state":"conditional","prerequisites":["Listed available integration","Provider subscription","Approved deployment and consent"],"enforcementBoundary":"Use partner-specific Registered capability. Coming-soon entries are not deployable promises. AI teammates are Frontier.","sourceIds":["CI2","CM3","CX11"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"conditional","prerequisites":["Verified integrated identity and token flow","Applicable CA entitlement"],"enforcementBoundary":"Entra-protected requests only. A partner listing does not prove vendor-internal calls use Entra.","sourceIds":["CI2","CE2"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"conditional","prerequisites":["Partner Observable capability","Working telemetry integration","Synthetic interaction"],"enforcementBoundary":"Only emitted metadata/content. Registered and Observable are separate capabilities.","sourceIds":["CI2","CI3","CI4"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"preview","prerequisites":["Supported Work IQ/onboarded MCP tool path","Security for AI","Approved runtime rule"],"enforcementBoundary":"Preview tooling path covers governed invocations only. Vendor-internal runtime inspection is not established by integration branding.","sourceIds":["CI2","CM4B","CD3"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"conditional","prerequisites":["Supported Agent 365 instance or Microsoft 365 interaction","Explicit policy scope","Purview entitlement"],"enforcementBoundary":"Instance human interactions use CU1 scopes. Vendor-internal content is not automatically covered. Outputs do not auto-inherit labels.","sourceIds":["CU1","CI2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"not-applicable","prerequisites":["Separate onboarded endpoint for access telemetry"],"enforcementBoundary":"SaaS runtime is not a supported local-agent process merely because a user accesses it.","sourceIds":["CP1","CP2"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"not-established","prerequisites":["Separate authorized infrastructure subscription integration"],"enforcementBoundary":"No blanket coverage of vendor-owned SaaS infrastructure or agent execution.","sourceIds":["CC1","CC2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Supported app connector or discovered domains","Scoped endpoint enforcement"],"enforcementBoundary":"Cloud discovery, supported OAuth governance, or domain blocking; not every SaaS prompt/tool action.","sourceIds":["CA1","CA2","CA3"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"conditional","prerequisites":["Routed supported client traffic","TLS inspection","Matching JSON conversation scheme"],"enforcementBoundary":"Client-side matching text prompts only. Does not inspect all provider-to-provider server traffic.","sourceIds":["CN2"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["Partner telemetry actually emitted","Configured lake/XDR/identity connectors"],"enforcementBoundary":"Only available ingested records. Registry-only integration cannot prove session ingestion.","sourceIds":["CS1","CS3","CI2"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Capacity and underlying evidence access"],"enforcementBoundary":"Evidence-backed analysis only. Missing provider telemetry remains unknown.","sourceIds":["CK1","CK2"],"availabilityDate":"2026-09-18"}
+      ]
+    },
+    {
+      "id": "sdk-custom",
+      "name": "SDK-enabled custom agents, including OpenAI-framework agents",
+      "controls": [
+        {"layer":"governance","state":"conditional","prerequisites":["Developer registration","Approved manifest and deployment"],"enforcementBoundary":"Registered metadata and supported lifecycle surfaces. Registration is not a hosting platform.","sourceIds":["CI3","CM2","CM3"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"conditional","prerequisites":["Selected Agent ID capability or actual Entra application flow","Correct policy target"],"enforcementBoundary":"Identity is a separate capability. Observability can use an application registration without proving Agent ID enforcement.","sourceIds":["CI3","CE2"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"conditional","prerequisites":["Explicit SDK instrumentation","Consent and exporter permissions","Approved input/output capture"],"enforcementBoundary":"Only supplied spans and payloads are visible. Framework support does not establish a Connected platforms provider.","sourceIds":["CI3","CI4","CR1"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"preview","prerequisites":["Supported Work IQ/onboarded MCP route","Security for AI and scoped policy"],"enforcementBoundary":"Supported preview tooling path only. Direct arbitrary tools are not covered by this integration.","sourceIds":["CD3","CM4","CM4B"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"conditional","prerequisites":["Supported integrated Microsoft 365 or Agent 365 instance path","Explicit policy scope"],"enforcementBoundary":"Supported interaction locations only. Generic custom tool outputs are not universally DLP-filtered.","sourceIds":["CU1","CI3"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"not-established","prerequisites":["Actual supported local-agent runtime on an onboarded device"],"enforcementBoundary":"An arbitrary SDK process is not automatically a supported native-inspection agent.","sourceIds":["CP1","CP2"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"conditional","prerequisites":["Customer-controlled supported cloud infrastructure","Approved plans"],"enforcementBoundary":"Infrastructure/model coverage is independent of custom agent instrumentation.","sourceIds":["CC1","CC2","CD4"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Relevant network discovery or supported OAuth application"],"enforcementBoundary":"Domains, app permissions, and connector records. Not a general custom-agent execution trace.","sourceIds":["CA1","CA2","CA3"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"conditional","prerequisites":["Approved routed client traffic","TLS inspection","Exact custom URL and JSON path"],"enforcementBoundary":"Matching JSON text prompts only. Remote runtime egress needs a separately supported routing design.","sourceIds":["CN2"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["Working exporter","Configured lake and required security connectors"],"enforcementBoundary":"Ingested emitted data only. Omitted content cannot be treated as inspected.","sourceIds":["CI3","CS1","CS3"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Capacity","Verified available schema","Authorized evidence"],"enforcementBoundary":"Assists analysis; generated queries and conclusions require analyst validation.","sourceIds":["CK1","CK2"],"availabilityDate":"2026-09-18"}
+      ]
+    },
+    {
+      "id": "connected-bedrock",
+      "name": "Connected Amazon Bedrock and AgentCore",
+      "acceptanceRequirement": "Actual Bedrock registry synchronization is required through ONB-10 despite preview status. Missing approval or rollout leaves full requested PoC acceptance BLOCKED. Provider-only readiness is insufficient.",
+      "controls": [
+        {"layer":"governance","state":"preview","prerequisites":["Authorized AWS region/account","Documented connector credentials","Explicit preview approval and tenant rollout","Manual Sync agents"],"enforcementBoundary":"Required actual registry sync and provider API-supported actions. Credential permissions can include deletion; not a read-only connection.","sourceIds":["CI1","CX15"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"not-established","prerequisites":["Separate demonstrated Entra resource authentication"],"enforcementBoundary":"AWS synchronization credentials do not create or prove an Entra runtime identity.","sourceIds":["CI1","CE2"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"not-established","prerequisites":["Additional supported SDK or observability integration"],"enforcementBoundary":"Registry sync documents metadata, not complete Bedrock prompt/tool traces.","sourceIds":["CI1","CI3","CI4"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"not-established","prerequisites":["Separately integrated supported tool path and telemetry"],"enforcementBoundary":"No universal Bedrock runtime blocking is established by Connected platforms sync.","sourceIds":["CI1","CD2","CD3"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"not-established","prerequisites":["Separate supported compliance integration or Microsoft 365 data path"],"enforcementBoundary":"No universal Bedrock transcript, label, DLP, or retention coverage from registry import.","sourceIds":["CI1","CU1"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"not-applicable","prerequisites":["Separate local client if endpoint testing is required"],"enforcementBoundary":"AWS-hosted agent execution is not local endpoint runtime inspection.","sourceIds":["CP1","CP2"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"conditional","prerequisites":["Separate AWS environment connection","Supported CSPM resources and permissions"],"enforcementBoundary":"Multicloud infrastructure discovery only where documented. Does not prove Bedrock agent content inspection.","sourceIds":["CC1","CD4"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Supported endpoint/network discovery","Approved domain enforcement scope"],"enforcementBoundary":"Observed client domains, not AWS server-side agent calls.","sourceIds":["CA1","CA2"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"conditional","prerequisites":["Supported routed client request","TLS inspection and custom JSON schema"],"enforcementBoundary":"Matching client-side JSON prompts only. Bedrock internal execution is outside that demonstrated path.","sourceIds":["CN2"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["Actual connector-provided records","Separate telemetry or cloud log integration where required"],"enforcementBoundary":"Do not expect complete agent sessions from inventory synchronization. Verify each dataset before querying.","sourceIds":["CI1","CS1","CS3"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Capacity and actual authorized incident data"],"enforcementBoundary":"Analyzes existing evidence only. It does not supply absent Bedrock runtime telemetry.","sourceIds":["CK1","CK2"],"availabilityDate":"2026-09-18"}
+      ]
+    },
+    {
+      "id": "connected-anthropic",
+      "name": "Connected Anthropic Claude Managed Agents",
+      "controls": [
+        {"layer":"governance","state":"preview","prerequisites":["Managed Agents beta access","Non-default workspace ID","Workspace-scoped API key"],"enforcementBoundary":"Manual registry synchronization and provider-supported management. Not Claude Code, Claude Desktop, or all Claude API applications.","sourceIds":["CI1"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"not-established","prerequisites":["Separate demonstrated Entra token path"],"enforcementBoundary":"Provider API-key synchronization is not Entra runtime authentication. API keys bypass CA.","sourceIds":["CI1","CE2"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"not-established","prerequisites":["Additional supported observability integration"],"enforcementBoundary":"Imported workspace inventory does not establish prompts, tool responses, or session transcripts.","sourceIds":["CI1","CI3"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"not-established","prerequisites":["Separate supported instrumented/Work IQ path"],"enforcementBoundary":"No universal Managed Agents runtime protection from the registry connector alone.","sourceIds":["CI1","CD2","CD3"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"not-established","prerequisites":["Separate supported compliance or Microsoft 365 interaction path"],"enforcementBoundary":"Provider-managed content is not automatically covered by Agent 365 instance policies.","sourceIds":["CI1","CU1"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"not-applicable","prerequisites":["Separate local Claude Code installation for endpoint tests"],"enforcementBoundary":"Claude Managed Agents is not the local Claude Code runtime.","sourceIds":["CI1","CP2"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"not-established","prerequisites":["Separate authorized supported infrastructure access"],"enforcementBoundary":"No documented access to Anthropic-owned infrastructure through registry sync.","sourceIds":["CI1","CC1"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Observed client domains","Cloud Apps/Endpoint integration"],"enforcementBoundary":"Discovery/domain blocking is client-side. It does not inspect provider-internal sessions.","sourceIds":["CA1","CA2"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"conditional","prerequisites":["Routed supported JSON request","TLS and verified conversation scheme"],"enforcementBoundary":"The Claude network extractor does not automatically establish Managed Agents session coverage.","sourceIds":["CN2","CI1"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["Verified actual data source","Required connectors"],"enforcementBoundary":"Only ingested records; inventory synchronization does not promise complete provider traces.","sourceIds":["CI1","CS1","CS3"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Capacity and accessible evidence"],"enforcementBoundary":"No fabricated vendor session details. Record missing telemetry as unknown.","sourceIds":["CK1","CK2"],"availabilityDate":"2026-09-18"}
+      ]
+    },
+    {
+      "id": "external-openai",
+      "name": "OpenAI external platform connection",
+      "controls": [
+        {"layer":"governance","state":"not-established","prerequisites":["No documented native Connected platforms procedure"],"enforcementBoundary":"OpenAI is absent from the current supported-provider list. SDK integration and Codex discovery are separate families.","sourceIds":["CI1","CI3","CP1"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"conditional","prerequisites":["Custom Entra integration to the actual resource"],"enforcementBoundary":"Entra token path only. OpenAI provider API keys are outside CA.","sourceIds":["CE2","CI3"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"conditional","prerequisites":["Explicit OpenAI-framework Agent 365 SDK instrumentation"],"enforcementBoundary":"Instrumented custom agent only. Does not imply a native OpenAI platform inventory connector.","sourceIds":["CI3","CI1"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"preview","prerequisites":["Separate supported Work IQ or onboarded MCP path"],"enforcementBoundary":"Governed preview tooling path only. No universal OpenAI hosted-agent content protection is established.","sourceIds":["CD3","CM4B"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"conditional","prerequisites":["Separate supported Microsoft 365 interaction or endpoint DLP setup"],"enforcementBoundary":"Supported data paths only. Not universal OpenAI provider-side transcript governance.","sourceIds":["CU1","CU2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"conditional","prerequisites":["Supported local Codex installation and onboarded endpoint"],"enforcementBoundary":"Codex local discovery/runtime preview only. Does not register or inspect the entire external platform.","sourceIds":["CP1","CP2","CP3"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"not-established","prerequisites":["Separate supported Azure-hosted model or customer infrastructure"],"enforcementBoundary":"Azure OpenAI model protection does not establish direct OpenAI platform protection.","sourceIds":["CC1","CC2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Supported discovered app/domain","Scoped Endpoint enforcement"],"enforcementBoundary":"App/domain access, not prompt-level decisions.","sourceIds":["CA1","CA2"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"conditional","prerequisites":["Routed ChatGPT or matching custom JSON traffic","TLS inspection and policy"],"enforcementBoundary":"Supported JSON text prompts only. ChatGPT network protection is not platform registry integration.","sourceIds":["CN2","CI1"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["Actual SDK, endpoint, or network records","Correct connectors"],"enforcementBoundary":"Only configured sources. No native OpenAI inventory connector or fabricated session table.","sourceIds":["CI3","CS1","CS3"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Capacity and accessible ingested evidence"],"enforcementBoundary":"Assistant analysis of available records. Provider coverage cannot be inferred from a summary.","sourceIds":["CK1","CK2"],"availabilityDate":"2026-09-18"}
+      ]
+    },
+    {
+      "id": "shadow-local-codex-claude",
+      "name": "Shadow/local Codex CLI, Codex Desktop, and Claude Code",
+      "controls": [
+        {"layer":"governance","state":"preview","prerequisites":["Frontier eligibility","Applicable Local Agents licensing","Intune-managed Windows"],"enforcementBoundary":"Local Agents discovery/governance surface. Native Codex CLI/desktop and Claude Code whole-app blocking is unavailable; supported extensions differ.","sourceIds":["CX09","CX11"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"not-established","prerequisites":["Separately demonstrated Entra-authenticated resource request"],"enforcementBoundary":"Discovery uses executing-user relationships. It does not create an Agent ID. Provider/API-key access is outside CA.","sourceIds":["CP1","CE2"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"conditional","prerequisites":["MDE P2","Supported onboarded active-AV endpoint"],"enforcementBoundary":"Local inventory and configured MCP metadata. Not full Agent 365 prompt telemetry from discovery alone.","sourceIds":["CP1","CP2"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"not-applicable","prerequisites":["Use separate MDE runtime configuration"],"enforcementBoundary":"Cloud Security for AI policy onboarding is not the native endpoint runtime switch.","sourceIds":["CD1","CD3","CP3"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"conditional","prerequisites":["Separately licensed and onboarded supported endpoint/data path","Explicit DLP scope"],"enforcementBoundary":"Supported file/browser/data-location controls only. Do not promise universal CLI prompt or tool DLP.","sourceIds":["CU1","CU2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"preview","prerequisites":["Supported Windows","Active Antivirus and real-time protection","Current signatures","AiAgentProtection Audit or Block"],"enforcementBoundary":"Claude Code and Codex CLI native prompt/tool checkpoint inspection. Codex Desktop is not established for this native preview. Discovery is separate.","sourceIds":["CP1","CP2","CP3","CP4"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"not-applicable","prerequisites":["Separate cloud infrastructure if used"],"enforcementBoundary":"A local development agent is not a Foundry model or cloud resource merely because it calls an API.","sourceIds":["CC1","CC2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Endpoint/Cloud Apps integration","Network Protection","Include-scoped domain policy"],"enforcementBoundary":"Discovered service domains and network blocking. No agent-native threat decision from unsanctioning.","sourceIds":["CA1","CA2"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"conditional","prerequisites":["Approved routed client traffic","TLS inspection","Matching JSON schema"],"enforcementBoundary":"Network prompt policy applies only to supported inspectable traffic; not every local tool operation.","sourceIds":["CN2"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["XDR incident/event connector","Selected endpoint tables"],"enforcementBoundary":"Endpoint alerts/process/network events where ingested. AgentsInfo remains a Defender hunting source unless another ingestion path is verified.","sourceIds":["CS3","CP1","CP4"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Capacity","Endpoint incident access","Analyst review"],"enforcementBoundary":"Summarizes real endpoint evidence. Must distinguish model refusal from Defender enforcement.","sourceIds":["CK1","CK2","CP4"],"availabilityDate":"2026-09-18"}
+      ]
+    },
+    {
+      "id": "shadow-local-openclaw",
+      "name": "Shadow/local OpenClaw",
+      "controls": [
+        {"layer":"governance","state":"preview","prerequisites":["Frontier Shadow AI eligibility","Applicable licensing","Intune-managed Windows","Separate impact approval"],"enforcementBoundary":"Whole-app blocking can affect all managed Windows devices and shared Node.js processes. Excluded from default PoC.","sourceIds":["CX10","CX09"],"availabilityDate":"2026-09-18"},
+        {"layer":"entra-ca","state":"not-established","prerequisites":["Separately proven Entra-protected downstream resource"],"enforcementBoundary":"Endpoint discovery is not identity registration. Provider API keys do not receive CA decisions.","sourceIds":["CP1","CE2"],"availabilityDate":"2026-09-18"},
+        {"layer":"observability","state":"conditional","prerequisites":["Supported MDE-onboarded endpoint","MDE P2 and active Antivirus"],"enforcementBoundary":"User/device/type inventory and configured MCP metadata. Not complete tool-execution traces.","sourceIds":["CP1"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-cloud-runtime","state":"not-applicable","prerequisites":["Use separate MDE network runtime inspection"],"enforcementBoundary":"Cloud-agent rule configuration does not turn on OpenClaw endpoint inspection.","sourceIds":["CD3","CP2","CP3"],"availabilityDate":"2026-09-18"},
+        {"layer":"purview","state":"conditional","prerequisites":["Supported endpoint/data path and explicit compliance policy"],"enforcementBoundary":"Supported locations only. No universal inspection of OpenClaw's arbitrary local tools.","sourceIds":["CU1","CU2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mde","state":"preview","prerequisites":["Supported Windows","Active Antivirus and current updates","AiAgentNetworkInspection Audit or Block","Approved supported-flow fixture"],"enforcementBoundary":"Supported network flows only. Certificate pinning and HTTP/3 are excluded. Native demonstration is not automatically an OpenClaw test.","sourceIds":["CP2","CP3","CP4"],"availabilityDate":"2026-09-18"},
+        {"layer":"defender-for-cloud","state":"not-applicable","prerequisites":["Separate supported cloud resource if used"],"enforcementBoundary":"No cloud-agent protection follows from local OpenClaw installation.","sourceIds":["CC1","CC2"],"availabilityDate":"2026-09-18"},
+        {"layer":"mdca","state":"conditional","prerequisites":["Cloud Apps/Endpoint discovery","Scoped Network Protection"],"enforcementBoundary":"Observed domains only. Domain blocking differs from OpenClaw or shared-runtime whole-app blocking.","sourceIds":["CA1","CA2","CX10"],"availabilityDate":"2026-09-18"},
+        {"layer":"gsa","state":"conditional","prerequisites":["Routed supported traffic","TLS inspection","Verified JSON endpoint/schema"],"enforcementBoundary":"Matched text prompts only. Do not infer local tool or all gateway traffic coverage.","sourceIds":["CN2"],"availabilityDate":"2026-09-18"},
+        {"layer":"sentinel","state":"conditional","prerequisites":["XDR connector and required endpoint event selection"],"enforcementBoundary":"Actual endpoint/network detections and events. Registry visibility is not a transcript feed.","sourceIds":["CS3","CP1","CP2"],"availabilityDate":"2026-09-18"},
+        {"layer":"security-copilot","state":"conditional","prerequisites":["Capacity","Actual authorized endpoint incident"],"enforcementBoundary":"Assists review of observed events. Uninspected flows remain an explicit coverage gap.","sourceIds":["CK1","CK2"],"availabilityDate":"2026-09-18"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+= Agent 365 Security PoC
+
+Use this kit to test Agent 365 across six deployment paths.
+The paths cover the five requested agent groups.
+
+* Copilot Studio agents.
+* Microsoft Foundry hosted agents.
+* Partner-integrated SaaS agents.
+* SDK-enabled custom agents.
+* Connected external platforms.
+* Shadow and local agents.
+
+Start with link:docs/POC.adoc[the complete runbook].
+Build the Word and PDF copies with the commands in the Document build section.
+Use the <<PoC demonstrator and tracker site>> to run the PoC day by day.
+
+== Read before execution
+
+Use a dedicated test environment and synthetic data.
+Approve costs, licences, consent, data locations, and policy scope before execution.
+No live product result is included.
+
+Registry presence does not prove identity integration, content inspection, or runtime blocking.
+The connected-platform documentation lists Bedrock and Claude Managed Agents.
+It does not list an OpenAI connector.
+Use the separate SDK path for an OpenAI-based custom runtime.
+
+Local agent discovery and runtime threat protection are different controls.
+The Local Agents page does not provide application blocking for native Codex CLI or Claude Code.
+Supported Defender for Endpoint runtime protection can inspect and block threats in those tools.
+The runbook separates these paths.
+
+== Local start
+
+Install Python 3.12, Node.js 24, Git, Azure CLI, and Bicep 0.46.1.
+Use Windows PowerShell 5.1 or later.
+
+[source,powershell]
+----
+npm ci --ignore-scripts --no-audit --no-fund
+.\scripts\Test-Kit.ps1
+python -m runtime --help
+python -m poc_evidence --help
+----
+
+The local checks do not deploy resources or change tenant policies.
+The runtime uses a local simulation unless an operator selects an online mode.
+
+== Files
+
+[cols="1,2",options="header"]
+|===
+|Path |Content
+|`docs` |Runbook, source register, and document source.
+|`catalogue` |Test cases and support matrix.
+|`runtime` |Custom agent and explicit Agent 365 instrumentation.
+|`hosted_foundry` |Hosted model agent with explicit Agent 365 telemetry.
+|`infra` |Optional Azure Bicep templates.
+|`providers` |External-provider test code and infrastructure.
+|`scripts` |Deployment, source download, and local checks.
+|`poc_evidence` |Evidence hashes, phase records, and acceptance reports.
+|`site` |PoC demonstrator and progress tracker site.
+|`queries` |Defender and Sentinel queries.
+|`fixtures` |Synthetic test content.
+|`tests` |Offline tests.
+|`reference-samples.json` |Pinned official sample references.
+|===
+
+== Evidence
+
+Store evidence outside this repository.
+Record positive and negative phases separately.
+Do not mark a local simulation as a live product result.
+A blocked or missing required test prevents original-scope acceptance.
+
+[source,powershell]
+----
+$Evidence = Join-Path $env:USERPROFILE 'Agent365-Evidence\run-01'
+python -m poc_evidence init --catalogue .\catalogue\scenarios.json --evidence-dir $Evidence
+python -m poc_evidence report --evidence-dir $Evidence
+----
+
+An initial report returns exit code 1 because no required case has passed.
+See link:evidence-format.txt[evidence-format.txt] for the schema and commands.
+
+== PoC demonstrator and tracker site
+
+The site presents the scope document, guides, and use cases.
+It tracks one tenant per engagement, for example the customer evaluation tenant and a demonstration tenant.
+It needs Node.js 22 or later and the document dependencies only.
+
+The site is a local web server. It works only while the server runs.
+To start it, double-click `Start-PocSite.cmd` in the repository folder.
+The launcher installs missing dependencies, starts the server, and opens the site in the browser.
+Keep the launcher window open while you use the site. Close the window to stop the site.
+If the site already runs, the launcher opens it and closes.
+
+To start the site from a terminal, run these commands from the repository folder:
+
+[source,powershell]
+----
+npm ci --ignore-scripts --no-audit --no-fund
+npm run site
+----
+
+Open http://127.0.0.1:4365/ in a browser on the same computer. Use `npm run site:open` to open it automatically.
+The server listens on the loopback address only.
+The message "127.0.0.1 refused to connect" means that the server is not running. Start it again.
+
+* Configuration steps: every guide step in two-week plan order, with a stable ID such as `G08.2.07`.
+* Use cases: 36 live-proofed cases, 29 demonstration-only cases, and 2 unscheduled optional cases.
+* Presenter mode: walkthrough slides for each use case. Press D to record a demonstration.
+* Tenant build: every object that the PoC creates or changes, with its cleanup state.
+* Notes and RAID: meetings, decisions, risks, issues, and actions. Only shared notes enter reports.
+* Reports: progress and final reports as Word or Markdown files, or PDF through the browser.
+* Exports: a filled `poc-plan.json`, evidence recorder commands, and the reference pack.
+
+The file `site/scope/poc-scope.json` maps the customer scope document, revision 1.1, onto the runbook and catalogue.
+It sets the live and demonstration-only scope, the two-week plan, and guide 45, the close-out guide.
+The evaluation scope has 568 live steps. The demonstration scope adds 28 optional and 251 demonstration-only steps.
+
+=== Engagement data
+
+The site stores engagement data outside the repository.
+The default folder is `%USERPROFILE%\Agent365-PoC-Site`.
+Set `A365_POC_SITE_DATA` or use `--data` to select another folder.
+The server refuses a data folder inside the repository.
+Each change is written atomically. The first change each day keeps a backup copy.
+
+On first start the site creates engagements from `site/seed.local.json` when that file exists.
+Otherwise it uses `site/seed.example.json`.
+Keep tenant names and identifiers in the ignored local seed only.
+
+=== Reference pack
+
+[source,powershell]
+----
+npm run build:reference-pack -- C:\Temp\Agent365-Reference-Pack
+----
+
+The command writes INDEX.md, TABLES.md, 45 guides, and 67 test procedures.
+The site offers the same pack as a ZIP download.
+
+Do not run `npm run build:docs` while `docs/Agent-365-Security-PoC.docx` holds the customer scope document.
+The document build replaces that file with the generated runbook.
+At start, the site keeps a copy of a scope document found at that path in the `documents` folder of its data folder.
+It never replaces that copy with the generated runbook.
+
+== Document build
+
+[source,powershell]
+----
+npm run build:docs
+.\tools\Export-RunbookPdf.ps1
+----
+
+PDF export requires Microsoft Word on Windows.
+The GitHub workflow builds the Word document and checks the generated procedure text.
+It does not require Word or export PDF.
+
+== Source date
+
+The source review date is 18 September 2026.
+Recheck service availability and preview terms before execution.
+Read link:docs/sources.json[the source register] and each linked product procedure.
+Official reference samples remain in their original repositories.
+Download the pinned source with `scripts\Get-ReferenceSamples.ps1`.
